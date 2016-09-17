@@ -12,5 +12,21 @@ describe('Generator', function() {
         var compiler = new TraitScript({'lit' : '1'});
         expect(compiler.generate()).to.equal("1");
     });
+
+    it('given a variable AST node, produce the JS for it', function() {
+        var compiler = new TraitScript({'var' : 'x'});
+        expect(compiler.generate()).to.equal("x");
+    });
+
+    it('given a simple function AST tree, produce the JS for it', function() {
+        var compiler = new TraitScript({
+            'fn' : 'f',
+            'args' : ['x', 'y'],
+            'body' : {
+                'var' : 'x'
+            }
+        });
+        expect(compiler.generate()).to.equal("function f(x,y) {return x;}");
+    });
 });
 
