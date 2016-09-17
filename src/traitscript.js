@@ -10,9 +10,9 @@ function gen(ast) {
     } else if (ast.app) {
         return ast.app + '(' + ast.args.map(gen).join(',') + ')';
     } else if (ast.fn) {
-        return 'function ' + ast.fn + '(' + ast.args.join(',') + ') {return ' + gen(ast.body) + ';}';
+        return 'function ' + ast.fn + '(' + ast.args.join(',') + '){return ' + gen(ast.body) + ';}';
     } else if (ast.blk) {
-        return ast.blk.map(gen).join(';') + ';';
+        return ast.def.map(gen).join('') + ast.blk.map(gen).join(';') + ';';
     } else {
         return '';
     }

@@ -34,23 +34,27 @@ describe('Generator', function() {
                 'var' : 'x'
             }
         });
-        expect(compiler.generate()).to.equal('function f(x,y) {return x;}');
+        expect(compiler.generate()).to.equal('function f(x,y){return x;}');
     });
 
     it('given a stament block in the AST tree, produce the JS for it', function() {
         var compiler = new TraitScript({
+            'def' : [
+                {'fn' : 'f', 'args' : ['x', 'y'], 'body' : {'var' : 'x'}}
+            ],
             'blk' : [
-                {'fn' : 'f', 'args' : ['x', 'y'], 'body' : {'var' : 'x'}},
                 {'app' : 'f', 'args' : [{'lit' : '1'}, {'lit' : '2'}]}
             ]
         });
-        expect(compiler.generate()).to.equal('function f(x,y) {return x;};f(1,2);');
+        expect(compiler.generate()).to.equal('function f(x,y){return x;}f(1,2);');
     });
 
     it('given a stament block in the AST tree, run the generated JS', function() {
         var compiler = new TraitScript({
-            'blk' : [
+            'def' : [
                 {'fn' : 'f', 'args' : ['x', 'y'], 'body' : {'var' : 'x'}},
+            ],
+            'blk' : [
                 {'app' : 'f', 'args' : [{'lit' : '1'}, {'lit' : '2'}]}
             ]
         });
