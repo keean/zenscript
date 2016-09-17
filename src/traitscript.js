@@ -7,6 +7,8 @@ function gen(ast) {
         return ast.lit;
     } else if (ast.var) {
         return ast.var;
+    } else if (ast.app) {
+        return ast.app + '(' + ast.args.map(gen).join(',') + ')';
     } else if (ast.fn) {
         return 'function ' + ast.fn + '(' + ast.args.join(',') + ') {return ' + gen(ast.body) + ';}';
     } else {

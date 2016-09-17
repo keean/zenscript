@@ -18,6 +18,14 @@ describe('Generator', function() {
         expect(compiler.generate()).to.equal("x");
     });
 
+    it('given a simple application AST tree, produce the JS for it', function() {
+        var compiler = new TraitScript({
+            'app' : 'f', 
+            'args' : [{'var' : 'x'}, {'var' : 'y'}]
+        })
+        expect(compiler.generate()).to.equal('f(x,y)')
+    });
+
     it('given a simple function AST tree, produce the JS for it', function() {
         var compiler = new TraitScript({
             'fn' : 'f',
@@ -26,7 +34,7 @@ describe('Generator', function() {
                 'var' : 'x'
             }
         });
-        expect(compiler.generate()).to.equal("function f(x,y) {return x;}");
+        expect(compiler.generate()).to.equal('function f(x,y) {return x;}');
     });
 });
 
