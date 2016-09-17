@@ -1,6 +1,4 @@
-module.exports = (function TSModule() {
-
-console.log('TraitScript compiler (C)2016 Keean Schupke')
+module.exports = (function Generate_Module() {
 
 function gen_fn(ast) {
     return 'function ' + ast.fn + '(' + ast.args.join(',') + '){' + gen_blk(ast.body) + '}';
@@ -42,13 +40,9 @@ function gen_blk(ast) {
     }
 }
 
-var exports = function TraitScript(ast) {
-    this.ast = ast;
-}
-
-exports.prototype.generate = function generate() {
-    return gen_blk(this.ast);
+var exports = function generate(ast) {
+    return gen_blk(ast);
 }
 
 return exports;
-})()
+})();
