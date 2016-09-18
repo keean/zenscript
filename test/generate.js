@@ -2,7 +2,7 @@ var chai = require('chai');
 var expect = chai.expect;
 var generate = require('../src/generate.js');
 
-describe('Generator', function() {
+describe('Generate', function() {
     it('given an empty AST, produce an empty JS output', function() {
         expect(generate({})).to.equal(";");
     });
