@@ -42,12 +42,14 @@ describe('Generate', function() {
     });
 
     it('given a stament block in the AST tree, run the generated JS', function() {
+        /* jshint evil:true */
         expect(eval(generate({
             'blk' : [
                 {'fn' : 'f', 'args' : ['x', 'y'], 'body' : {'rtn' : {'var' : 'x'}}},
                 {'app' : 'f', 'args' : [{'lit' : '1'}, {'lit' : '2'}]}
             ]
         }))).to.equal(1);
+        /* jshint evil:false */
     });
 });
 
