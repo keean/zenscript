@@ -4,15 +4,15 @@ var generate = require('../src/generate.js');
 
 describe('Generate', function() {
     it('given an empty AST, produce an empty JS output', function() {
-        expect(generate({})).to.equal(";");
+        expect(generate({})).to.equal(';');
     });
 
     it('given a literal AST node, produce the JS for it', function() {
-        expect(generate({'lit' : '1'})).to.equal("1;");
+        expect(generate({'lit' : '1'})).to.equal('1;');
     });
 
     it('given a variable AST node, produce the JS for it', function() {
-        expect(generate({'var' : 'x'})).to.equal("x;");
+        expect(generate({'var' : 'x'})).to.equal('x;');
     });
 
     it('given a simple application AST tree, produce the JS for it', function() {
