@@ -10,7 +10,7 @@ var exports = function parse(s) {
     var result = identifier.parse(s);
 
     return result.value;
-}
+};
 
 return exports;
 })();

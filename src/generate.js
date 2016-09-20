@@ -42,7 +42,7 @@ function gen_blk(ast) {
 
 var exports = function generate(ast) {
     return gen_blk(ast);
-}
+};
 
 return exports;
 })();
