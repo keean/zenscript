@@ -52,5 +52,9 @@ describe('Parse', function() {
             }
         });
     });
+
+    it('parse assignment of function definition, and application', function() {
+        expect(parse('id = id(x) => x\nid(42)')).to.deep.equal({});
+    });
 });
 

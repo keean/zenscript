@@ -17,5 +17,9 @@ describe('Integration', function() {
     it('parse function assignment, and expression, then generate', function() {
         expect(generate(parse('id = id(x) => x').value)).to.equal('id=function id(x){x;};');
     });
+
+    it('parse function assignment, and application, then generate', function() {
+        expect(eval(generate(parse('id = id(x) => x\nid(42)').value))).to.equal(42);
+    });
 });
 

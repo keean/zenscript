@@ -6,7 +6,8 @@ var Parsimmon = require('parsimmon');
 var exports = function parse(s) {
 
     var assign = Parsimmon.string('=');
-    var space = Parsimmon.oneOf(' \t');
+    var space = Parsimmon.regex(/[ \t]*/);
+    var comma = Parsimmon.string(',');
     var cr = Parsimmon.string('\n');
     
     var identifier = Parsimmon.regexp(/[a-z][a-zA-Z_]*/);
@@ -15,30 +16,43 @@ var exports = function parse(s) {
         return {'var' : id};
     });
 
+    var arg_list = Parsimmon.sepBy(identifier.skip(space), comma);
+
     var int_lit = Parsimmon.regexp(/[0-9]+/).map(function(i) {
         return {'lit' : parseInt(i)};
     });
 
     var block;
+    var expression_list;
 
     var fn_lit = Parsimmon.seqMap(
-        identifier.or(Parsimmon.succeed('')).map(function(name) {
-            return name;
-        }),
-        Parsimmon.string('(').then(identifier).skip(Parsimmon.string(')')).skip(space).skip(Parsimmon.string('=>')).skip(space),
+        identifier.or(Parsimmon.succeed('')),
+        Parsimmon.string('(').then(arg_list).skip(Parsimmon.string(')')).skip(space).skip(Parsimmon.string('=>')).skip(space),
         Parsimmon.lazy(function() {
             return block;
         }),
-        function(name, arg, body) {
-            return {'fn' : name, 'args' : [arg], 'body' : body};
+        function(name, args, body) {
+            return {'fn' : name, 'args' : args, 'body' : body};
         }
     );
 
-    var expression = fn_lit.or(variable).or(int_lit);
+    var fn_app = Parsimmon.seqMap(
+        identifier.or(Parsimmon.succeed('')),
+        Parsimmon.string('(').then(Parsimmon.lazy(function() {
+            return expression_list;
+        })).skip(Parsimmon.string(')')),
+        function(name, exps) {
+            return {'app' : name, 'args' : [exps]};
+        }
+    );
+
+    var expression = fn_lit.or(fn_app).or(variable).or(int_lit).skip(space);
+
+    expression_list = Parsimmon.sepBy(expression, Parsimmon.string(','));
 
     var assignment = Parsimmon.seqMap(identifier,
-            Parsimmon.optWhitespace,
-            assign, Parsimmon.optWhitespace,
+            space,
+            assign, space,
             expression,
             function(n, x, y, z, v) {
         return {'ass' : n, 'exp' : v};
