@@ -22,21 +22,24 @@ var exports = function parse(s) {
     var block;
 
     var fn_lit = Parsimmon.seqMap(
+        identifier.or(Parsimmon.succeed('')).map(function(name) {
+            return name;
+        }),
         Parsimmon.string('(').then(identifier).skip(Parsimmon.string(')')).skip(space).skip(Parsimmon.string('=>')).skip(space),
         Parsimmon.lazy(function() {
             return block;
         }),
-        function(arg, body) {
-            return {'fn' : '', 'args' : [arg], 'body' : body};
+        function(name, arg, body) {
+            return {'fn' : name, 'args' : [arg], 'body' : body};
         }
     );
 
-    var expression = variable.or(int_lit).or(fn_lit);
+    var expression = fn_lit.or(variable).or(int_lit);
 
     var assignment = Parsimmon.seqMap(identifier,
             Parsimmon.optWhitespace,
             assign, Parsimmon.optWhitespace,
-            int_lit,
+            expression,
             function(n, x, y, z, v) {
         return {'ass' : n, 'exp' : v};
     });

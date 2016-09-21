@@ -13,5 +13,9 @@ describe('Integration', function() {
         expect(eval(generate(parse('x = 3\nx').value))).to.equal(3);
         /* jshint evil:false */
     });
+
+    it('parse function assignment, and expression, then generate', function() {
+        expect(generate(parse('id = id(x) => x').value)).to.equal('id=function id(x){x;};');
+    });
 });
 

@@ -43,5 +43,14 @@ describe('Parse', function() {
             }
         });
     });
+
+    it('parse assignment of function definition', function() {
+        expect(parse('id = id(x) => x')).to.deep.equal({
+            'status' : true,
+            'value' : {
+                'blk' : [{'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'blk' : [{'var' : 'x'}]}}}]
+            }
+        });
+    });
 });
 
