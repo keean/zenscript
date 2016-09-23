@@ -55,10 +55,10 @@ describe('Generate', function() {
     it('given a function definition and application, generate the AST', function() {
         expect(generate({
             'blk' : [
-                {'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'var' : 'x'}}},
+                {'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}},
                 {'app' : 'id', 'args' : [{'lit' : 42}]}
              ]
-        })).to.equal('id=function id(x){x;};id(42);');
+        })).to.equal('id=function id(x){return x;};id(42);');
     });
 });
 
