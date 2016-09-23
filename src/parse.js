@@ -56,13 +56,16 @@ var exports = function parse(s) {
 
     expression_list = Parsimmon.sepBy(expression, Parsimmon.string(','));
 
-    var assignment = Parsimmon.seqMap(identifier,
-            space,
-            assign, space,
+    var assign_keyword = Parsimmon.string('let');
+    var assignment = Parsimmon.seqMap(
+            assign_keyword.then(space).then(identifier).skip(space).skip(assign).skip(space),
             expression,
-            function(n, x, y, z, v) {
-        return {'ass' : n, 'exp' : v};
-    });
+            function(n, v) {
+                return {'ass' : n, 'exp' : v};
+            }
+    );
+
+
 
     var statement = assignment.or(expression);
 

@@ -18,7 +18,7 @@ describe('Parse', function() {
     });
 
     it('parse simple assignment', function() {
-        expect(parse('x = 3')).to.deep.equal({
+        expect(parse('let x = 3')).to.deep.equal({
             'status' : true,
             'value' : {
                 'blk' : [{'ass' : 'x', 'exp' : {'lit' : 3}}]
@@ -27,7 +27,7 @@ describe('Parse', function() {
     });
     
     it('parse simple assignment, and expression', function() {
-        expect(parse('x = 3\nx')).to.deep.equal({
+        expect(parse('let x = 3\nx')).to.deep.equal({
             'status' : true,
             'value' : {
                 'blk' : [{'ass' : 'x', 'exp' : {'lit' : 3}}, {'var' : 'x'}]
@@ -45,7 +45,7 @@ describe('Parse', function() {
     });
 
     it('parse assignment of function definition', function() {
-        expect(parse('id = id(x) => x')).to.deep.equal({
+        expect(parse('let id = id(x) => x')).to.deep.equal({
             'status' : true,
             'value' : {
                 'blk' : [{'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}}]
@@ -54,7 +54,7 @@ describe('Parse', function() {
     });
 
     it('parse assignment of function definition, and application', function() {
-        expect(parse('id = id(x) => x\nid(42)')).to.deep.equal({
+        expect(parse('let id = id(x) => x\nid(42)')).to.deep.equal({
             'status' : true,
             'value' : {
                 'blk' : [
