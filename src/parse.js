@@ -22,15 +22,21 @@ var exports = function parse(s) {
         return {'lit' : parseInt(i)};
     });
 
+    // definitions for recursive parsers
     var block;
+    var expression;
     var expression_list;
 
     var fn_lit = Parsimmon.seqMap(
         identifier.or(Parsimmon.succeed('')),
         Parsimmon.string('(').then(arg_list).skip(Parsimmon.string(')')).skip(space).skip(Parsimmon.string('=>')).skip(space),
-        Parsimmon.lazy(function() {
+        cr.then(Parsimmon.lazy(function() {
             return block;
-        }),
+        })).or(Parsimmon.lazy(function() {
+            return expression.map(function(e) {
+                return {'rtn' : e};
+            })
+        })),
         function(name, args, body) {
             return {'fn' : name, 'args' : args, 'body' : body};
         }
@@ -42,11 +48,11 @@ var exports = function parse(s) {
             return expression_list;
         })).skip(Parsimmon.string(')')),
         function(name, exps) {
-            return {'app' : name, 'args' : [exps]};
+            return {'app' : name, 'args' : exps};
         }
     );
 
-    var expression = fn_lit.or(fn_app).or(variable).or(int_lit).skip(space);
+    expression = fn_lit.or(fn_app).or(variable).or(int_lit).skip(space);
 
     expression_list = Parsimmon.sepBy(expression, Parsimmon.string(','));
 
@@ -60,9 +66,17 @@ var exports = function parse(s) {
 
     var statement = assignment.or(expression);
 
-    block = Parsimmon.sepBy(statement, cr).map(function(blk) {
-        return {'blk' : blk};
-    });
+    block = Parsimmon.sepBy(
+        Parsimmon.seqMap(
+            Parsimmon.string(' ').many(),
+            statement,
+            function(spaces, stmt) {
+                var indent = spaces.length;
+                return stmt;
+            }
+        ), cr).map(function(blk) {
+            return {'blk' : blk};
+        });
 
     return block.parse(s);
 };

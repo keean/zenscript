@@ -51,5 +51,14 @@ describe('Generate', function() {
         }))).to.equal(1);
         /* jshint evil:false */
     });
+
+    it('given a function definition and application, generate the AST', function() {
+        expect(generate({
+            'blk' : [
+                {'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'var' : 'x'}}},
+                {'app' : 'id', 'args' : [{'lit' : 42}]}
+             ]
+        })).to.equal('id=function id(x){x;};id(42);');
+    });
 });
 

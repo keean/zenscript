@@ -6,7 +6,7 @@ function gen_fn(ast) {
 
 function gen_exp(ast) {
     if (ast.lit) {
-        return ast.lit;
+        return ast.lit.toString();
     } else if (ast.var) {
         return ast.var;
     } else if (ast.app) {

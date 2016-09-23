@@ -39,7 +39,7 @@ describe('Parse', function() {
         expect(parse('(x) => x')).to.deep.equal({
             'status' : true,
             'value' : {
-                'blk' : [{'fn' : '', 'args' : ['x'], 'body' : {'blk' : [{'var' : 'x'}]}}]
+                'blk' : [{'fn' : '', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}]
             }
         });
     });
@@ -48,13 +48,21 @@ describe('Parse', function() {
         expect(parse('id = id(x) => x')).to.deep.equal({
             'status' : true,
             'value' : {
-                'blk' : [{'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'blk' : [{'var' : 'x'}]}}}]
+                'blk' : [{'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}}]
             }
         });
     });
 
     it('parse assignment of function definition, and application', function() {
-        expect(parse('id = id(x) => x\nid(42)')).to.deep.equal({});
+        expect(parse('id = id(x) => x\nid(42)')).to.deep.equal({
+            'status' : true,
+            'value' : {
+                'blk' : [
+                    {'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}},
+                    {'app' : 'id', 'args' : [{'lit' : 42}]}
+                ]
+            }
+        });
     });
 });
 
