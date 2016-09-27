@@ -35,7 +35,7 @@ var exports = function parse(s) {
         })).or(Parsimmon.lazy(function() {
             return expression.map(function(e) {
                 return {'rtn' : e};
-            })
+            });
         })),
         function(name, args, body) {
             return {'fn' : name, 'args' : args, 'body' : body};
@@ -43,7 +43,7 @@ var exports = function parse(s) {
     );
 
     var fn_app = Parsimmon.seqMap(
-        identifier.or(Parsimmon.succeed('')),
+        identifier,
         Parsimmon.string('(').then(Parsimmon.lazy(function() {
             return expression_list;
         })).skip(Parsimmon.string(')')),
@@ -66,22 +66,83 @@ var exports = function parse(s) {
     );
 
 
-
     var statement = assignment.or(expression);
 
-    block = Parsimmon.sepBy(
-        Parsimmon.seqMap(
-            Parsimmon.string(' ').many(),
-            statement,
-            function(spaces, stmt) {
-                var indent = spaces.length;
-                return stmt;
-            }
-        ), cr).map(function(blk) {
-            return {'blk' : blk};
-        });
+    var Indent = (function() {
+        var indent = 0;
+        function eq(x, y) {return x == y;};
+        function ge(x, y) {return x >= y;};
+        function gt(x, y) {return x > y;};
+        return {
+            get: function() {
+                return indent;
+            },
+            set: function(i) {
+                indent = i;
+            },
+            relative: function(relation) {
+                return Parsimmon.custom(function(success, failure) {
+                    return function(stream, i) {
+                        var j = 0;
+                        while (stream.charAt(i + j) == ' ') {
+                            j = j + 1;
+                        }
+                        if (relation(j, indent)) {
+                            indent = j;
+                            return success(i + j, j);
+                        } else {
+                            if (relation == eq) {
+                                return failure(i, 'indentation error: ' + j + " does not equal " + indent);
+                            } else if (relation == gt) {
+                                return failure(i, 'indentation error: ' + j + " is not greater than " + indent);
+                            } else {
+                                return failure(i, 'indentation error: ' + j + " is not equal or greater then" + indent);
+                            }
+                        }
+                    };
+                });
+            },
+            absolute: function(target) {
+                return Parsimmon.custom(function(success, failure) {
+                    return function(stream, i) {
+                        var j = 0;
+                        while (stream.charAt(i + j) == ' ') {
+                            j = j + 1;
+                        }
+                        if (j == target) {
+                            indent = j;
+                            return success(i + j, target);
+                        } else {
+                            return failure(i, 'indentation error: ' + j + ' does not equal ' + target);
+                        }
+                    };
+                });
+            },
+            eq : eq, 
+            ge : ge,
+            gt : gt
+        };
+    })();
 
-    return block.parse(s);
+
+    var top_level = Parsimmon.sepBy(Indent.absolute(0).then(statement), cr).map(function(blk) {
+        return {'blk' : blk};
+    });
+
+    block = Parsimmon.succeed({}).chain(function() {
+        var indent = Indent.get();
+        return Parsimmon.seqMap(
+            Indent.relative(Indent.gt).then(statement),
+            Parsimmon.alt((cr.then(Indent.relative(Indent.eq)).then(statement)).many(), Parsimmon.succeed([])),
+            function(s, ss) {
+                ss.unshift(s);
+                Indent.set(indent);
+                return {'blk' : ss};
+            }   
+        );
+    });
+
+    return top_level.parse(s);
 };
 
 

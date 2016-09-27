@@ -64,5 +64,9 @@ describe('Parse', function() {
             }
         });
     });
+
+    it('parse function definiton block indent', function() {
+        expect(parse('let f = (x) =>\n g(x)\n g(x)')).to.deep.equal({});
+    });
 });
 
