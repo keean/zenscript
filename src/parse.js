@@ -1,4 +1,4 @@
-module.exports = (function Parse_Module() {
+module.exports = (() => {
     "use strict"
 
 var Parsimmon = require('parsimmon')
