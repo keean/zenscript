@@ -1,4 +1,5 @@
 module.exports = (function Generate_Module() {
+    "use strict";
 
 function gen_fn(ast) {
     return 'function ' + ast.fn + '(' + ast.args.join(',') + '){' + gen_blk(ast.body) + '}';
