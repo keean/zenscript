@@ -21,7 +21,7 @@ describe('Parse', () => {
         expect(parse('let x = 3')).to.deep.equal({
             'status' : true,
             'value' : {
-                'blk' : [{'ass' : 'x', 'exp' : {'lit' : 3}}]
+                'blk' : [{'decl' : 'x', 'exp' : {'lit' : 3}}]
             }
         })
     })
@@ -30,7 +30,7 @@ describe('Parse', () => {
         expect(parse('let x = 3\nx')).to.deep.equal({
             'status' : true,
             'value' : {
-                'blk' : [{'ass' : 'x', 'exp' : {'lit' : 3}}, {'var' : 'x'}]
+                'blk' : [{'decl' : 'x', 'exp' : {'lit' : 3}}, {'var' : 'x'}]
             }
         })
     })
@@ -48,7 +48,7 @@ describe('Parse', () => {
         expect(parse('let id = id(x) => x')).to.deep.equal({
             'status' : true,
             'value' : {
-                'blk' : [{'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}}]
+                'blk' : [{'decl' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}}]
             }
         })
     })
@@ -58,7 +58,7 @@ describe('Parse', () => {
             'status' : true,
             'value' : {
                 'blk' : [
-                    {'ass' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}},
+                    {'decl' : 'id', 'exp' : {'fn' : 'id', 'args' : ['x'], 'body' : {'rtn' : {'var' : 'x'}}}},
                     {'app' : 'id', 'args' : [{'lit' : 42}]}
                 ]
             }
@@ -68,7 +68,7 @@ describe('Parse', () => {
     it('parse function definiton block indent', () => {
         expect(parse('let f = (x) =>\n g(x)\n g(x)')).to.deep.equal({'status': true, 'value': 
             {'blk': [
-                {'ass': 'f', 'exp':
+                {'decl': 'f', 'exp':
                     {'args': ['x'], 'body': 
                         {'blk': [
                             {'app': 'g', 'args': [{'var': 'x'}]},

@@ -12,7 +12,7 @@ function gen_exp(ast) {
         return ast.var
     } else if (ast.app) {
         return ast.app + '(' + ast.args.map(gen_exp).join(',') + ')'
-    } else if (ast.fn) {
+    } else if (ast.fn !== undefined) {
         return gen_fn(ast)
     } else {
         return ''
@@ -32,7 +32,7 @@ function gen_stmt(ast) {
         return ast.app + '(' + ast.args.map(gen_exp).join(',') + ');'
     } else {
         var exp = gen_exp(ast)
-        if (exp != '') {
+        if (exp !== '') {
             exp += ';'
         }
         return exp

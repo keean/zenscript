@@ -10,7 +10,7 @@ var exports = (s) => {
     var comma = Parsimmon.string(',')
     var newline = Parsimmon.string('\n')
     
-    var identifier = Parsimmon.regexp(/[a-z][a-zA-Z_]*/)
+    var identifier = Parsimmon.regexp(/[a-z][a-zA-Z_0-9]*/)
 
     var variable = identifier.map((id) => {
         return {'var' : id}
@@ -61,12 +61,18 @@ var exports = (s) => {
             assign_keyword.then(space).then(identifier).skip(space).skip(assign).skip(space),
             expression,
             (n, v) => {
-                return {'ass' : n, 'exp' : v}
+                return {'decl' : n, 'exp' : v}
             }
     )
 
 
-    var statement = assignment.or(expression).skip(space)
+    var return_keyword = Parsimmon.string('return')
+
+    var rtn = return_keyword.then(space).then(expression).map((exp) => {
+        return {'rtn' : exp}
+    })
+
+    var statement = rtn.or(assignment).or(expression).skip(space)
 
     function IndentationParser(init) {
         this.indent = init

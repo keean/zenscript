@@ -40,7 +40,6 @@ var compile = (() => {
 })()
 
 if (process.argv.length != 3) {
-    console.log(process.argv[3])
     return console.log('Please specify source file')
 }
 
