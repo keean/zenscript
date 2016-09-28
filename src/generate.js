@@ -27,7 +27,9 @@ function gen_stmt(ast) {
     } else if (ast.ass) {
         return ast.ass + '=' + gen_exp(ast.exp) + ';'
     } else if (ast.rtn) {
-        return 'return ' + gen_exp(ast.rtn) + ';'
+       return 'return ' + gen_exp(ast.rtn) + ';'
+    } else if (ast.app) {
+        return ast.app + '(' + ast.args.map(gen_exp).join(',') + ');'
     } else {
         return ''
     }
