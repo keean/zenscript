@@ -66,7 +66,7 @@ var exports = (s) => {
     )
 
 
-    var statement = assignment.or(expression)
+    var statement = assignment.or(expression).skip(space)
 
     function IndentationParser(init) {
         this.indent = init
@@ -78,24 +78,22 @@ var exports = (s) => {
         this.indent = i
     }
     IndentationParser.prototype.relative = function(relation) {
-        var self = this
         return Parsimmon.custom((success, failure) => {
             return (stream, i) => {
                 var j = 0
                 while (stream.charAt(i + j) == ' ') {
                     j = j + 1
                 }
-                if (relation.op(j, self.indent)) {
-                    self.indent = j
+                if (relation.op(j, this.indent)) {
+                    this.indent = j
                     return success(i + j, j)
                 } else {
-                    return failure(i, 'indentation error: ' + j + relation.err + self.indent)
+                    return failure(i, 'indentation error: ' + j + relation.err + this.indent)
                 }
             }
         })
     }
     IndentationParser.prototype.absolute = function(target) {
-        var self = this
         return Parsimmon.custom((success, failure) => {
             return (stream, i) => {
                 var j = 0
@@ -103,7 +101,7 @@ var exports = (s) => {
                     j = j + 1
                 }
                 if (j == target) {
-                    self.indent = j
+                    this.indent = j
                     return success(i + j, target)
                 } else {
                     return failure(i, 'indentation error: ' + j + ' does not equal ' + target)
@@ -117,9 +115,7 @@ var exports = (s) => {
     IndentationParser.prototype.any = {op: (x, y) => {return true}, err: ' cannot fail '}
     var Indent = new IndentationParser(0)
 
-
-    //var top_level = Parsimmon.sepBy(Indent.absolute(0).then(statement).or(Parsimmon.eof), newline).map((blk) => {
-    var top_level = Parsimmon.sepBy(statement.or(Parsimmon.eof.map(() => {return {'eof':''}})), newline).map((blk) => {
+    var top_level = newline.many().then((Indent.absolute(0).then(statement).skip(newline.many())).many()).map((blk) => {
         return {'blk' : blk}
     })
 
@@ -142,3 +138,4 @@ var exports = (s) => {
 
 return exports
 })()
+

@@ -25,7 +25,7 @@ describe('Parse', () => {
             }
         })
     })
-    
+
     it('parse simple assignment, and expression', () => {
         expect(parse('let x = 3\nx')).to.deep.equal({
             'status' : true,
@@ -66,7 +66,19 @@ describe('Parse', () => {
     })
 
     it('parse function definiton block indent', () => {
-        expect(parse('let f = (x) =>\n g(x)\n g(x)')).to.deep.equal({})
+        expect(parse('let f = (x) =>\n g(x)\n g(x)')).to.deep.equal({'status': true, 'value': 
+            {'blk': [
+                {'ass': 'f', 'exp':
+                    {'args': ['x'], 'body': 
+                        {'blk': [
+                            {'app': 'g', 'args': [{'var': 'x'}]},
+                            {'app': 'g', 'args': [{'var': 'x'}]}
+                        ]},
+                        'fn': ''
+                    }
+                }
+            ]}
+        })
     })
 })
 

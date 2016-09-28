@@ -4,7 +4,7 @@ var generate = require('../src/generate.js')
 
 describe('Generate', () => {
     it('given an empty AST, produce an empty JS output', () => {
-        expect(generate({})).to.equal(';')
+        expect(generate({})).to.equal('')
     })
 
     it('given a literal AST node, produce the JS for it', () => {

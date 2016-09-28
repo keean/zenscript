@@ -31,7 +31,11 @@ function gen_stmt(ast) {
     } else if (ast.app) {
         return ast.app + '(' + ast.args.map(gen_exp).join(',') + ');'
     } else {
-        return ''
+        var exp = gen_exp(ast)
+        if (exp != '') {
+            exp += ';'
+        }
+        return exp
     }
 }
 
