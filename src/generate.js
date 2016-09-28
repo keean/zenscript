@@ -29,7 +29,7 @@ function gen_stmt(ast) {
     } else if (ast.rtn) {
         return 'return ' + gen_exp(ast.rtn) + ';'
     } else {
-        return gen_exp(ast) + ';'
+        return ''
     }
 }
 

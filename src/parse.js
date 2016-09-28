@@ -8,7 +8,7 @@ var exports = (s) => {
     var assign = Parsimmon.string('=')
     var space = Parsimmon.regex(/[ \t]*/)
     var comma = Parsimmon.string(',')
-    var cr = Parsimmon.string('\n')
+    var newline = Parsimmon.string('\n')
     
     var identifier = Parsimmon.regexp(/[a-z][a-zA-Z_]*/)
 
@@ -30,7 +30,7 @@ var exports = (s) => {
     var fn_lit = Parsimmon.seqMap(
         identifier.or(Parsimmon.succeed('')),
         Parsimmon.string('(').then(arg_list).skip(Parsimmon.string(')')).skip(space).skip(Parsimmon.string('=>')).skip(space),
-        cr.then(Parsimmon.lazy(() => {
+        newline.then(Parsimmon.lazy(() => {
             return block
         })).or(Parsimmon.lazy(() => {
             return expression.map((e) => {
@@ -118,7 +118,8 @@ var exports = (s) => {
     var Indent = new IndentationParser(0)
 
 
-    var top_level = Parsimmon.sepBy(Indent.absolute(0).then(statement), cr).map((blk) => {
+    //var top_level = Parsimmon.sepBy(Indent.absolute(0).then(statement).or(Parsimmon.eof), newline).map((blk) => {
+    var top_level = Parsimmon.sepBy(statement.or(Parsimmon.eof.map(() => {return {'eof':''}})), newline).map((blk) => {
         return {'blk' : blk}
     })
 
@@ -126,7 +127,7 @@ var exports = (s) => {
         var indent = Indent.get()
         return Parsimmon.seqMap(
             Indent.relative(Indent.gt).then(statement),
-            (cr.then(Indent.relative(Indent.eq)).then(statement)).many(),
+            (newline.then(Indent.relative(Indent.eq)).then(statement)).many(),
             (first, blk) => {
                 blk.unshift(first)
                 Indent.set(indent)
