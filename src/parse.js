@@ -128,8 +128,8 @@ var exports = (s) => {
     block = Parsimmon.succeed({}).chain(() => {
         var indent = Indent.get()
         return Parsimmon.seqMap(
-            Indent.relative(Indent.gt).then(statement),
-            (newline.then(Indent.relative(Indent.eq)).then(statement)).many(),
+            newline.many().then(Indent.relative(Indent.gt)).then(statement),
+            (newline.many().then(Indent.relative(Indent.eq)).then(statement)).many(),
             (first, blk) => {
                 blk.unshift(first)
                 Indent.set(indent)
