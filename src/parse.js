@@ -1,7 +1,7 @@
 module.exports = (() => {
     "use strict"
 
-var Parsimmon = require('parsimmon')
+var P = require('parsimmon')
 var AST = require('../src/ast.js')
 
 var exports = (s) => {
@@ -19,7 +19,7 @@ var exports = (s) => {
         this.indent = i
     }
     IndentationParser.prototype.relative = function(relation) {
-        return Parsimmon.custom((success, failure) => {
+        return P.custom((success, failure) => {
             return (stream, i) => {
                 var j = 0
                 while (stream.charAt(i + j) == ' ') {
@@ -34,7 +34,7 @@ var exports = (s) => {
         })
     }
     IndentationParser.prototype.absolute = function(target) {
-        return Parsimmon.custom((success, failure) => {
+        return P.custom((success, failure) => {
             return (stream, i) => {
                 var j = 0
                 while (stream.charAt(i + j) == ' ') {
@@ -57,68 +57,98 @@ var exports = (s) => {
     //------------------------------------------------------------------------
     // Terminals
 
-    var assign = Parsimmon.string('=')
-    var space = Parsimmon.regex(/[ \t]*/)
-    var comma = Parsimmon.string(',')
-    var newline = Parsimmon.string('\n').desc('newline')
-    var identifier = Parsimmon.regexp(/[a-z][a-zA-Z_0-9]*/)
+    var assign = P.string('=')
+    var space = P.regex(/[ \t]*/)
+    var newline = P.string('\n').desc('newline')    // NL
 
-
-    var variable = identifier.map((id) => {
-        return new AST.Variable(id)
+    // TID
+    var tid = P.regexp(/[A-Z].[a-z]/).map((n) => {
+        return new AST.Type(n)
     })
 
-    var int_lit = Parsimmon.regexp(/[0-9]+/).map((i) => {
-        return new AST.Literal_Int(parseInt(i))
+    // FLOAT
+    var literal_float = P.regexp(/[0-9]+\.[0-9]+/).map((n) => {
+        return new AST.Literal_Float(parseFloat(n))
+    })
+
+    // STRING : Simple for now, fix later
+    var literal_string = P.regexp(/"[^"]"/).map((s) => {
+        return new AST.Literal_String(s)
     })
 
     // definitions for recursive parsers
-    var block
-    var expression
-    var expression_list
+    var expression_list_lazy
+    var expression_list = P.lazy(() => {return expression_list_lazy})
+
+    var expression_lazy
+    var expression = P.lazy(() => {return expression_lazy})
+
+    var block_lazy
+    var block = P.lazy(() => {return block_lazy})
 
     //------------------------------------------------------------------------
     // Expressions
-
+    
+    // exp_space = {' '}, [NL, {NL}, INDENT.>];
     var exp_space = space.then((newline.atLeast(1).then(Indent.relative(Indent.gt))).atMost(1))
 
-    var arg_list = Parsimmon.sepBy(identifier.skip(exp_space), comma)
+    var comma = P.string(',').skip(exp_space)
+    var bracket_open = P.string('(').skip(exp_space)
+    var bracket_close = P.string(')').skip(exp_space)
+    var fat_arrow = P.string('=>').skip(space)
+    var identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
 
-    var fn_lit = Parsimmon.seqMap(
-        identifier.or(Parsimmon.succeed('')),
-        Parsimmon.string('(').then(arg_list).skip(Parsimmon.string(')')).skip(exp_space).skip(Parsimmon.string('=>')).skip(space),
-        newline.then(Parsimmon.lazy(() => {
-            return block
-        })).or(Parsimmon.lazy(() => {
-            return expression.map((e) => {
-                return new AST.Return(e)
-            })
-        })),
+    // arg_list = identifier, {comma, identifier}
+    var arg_list = P.sepBy(identifier, comma)
+
+    // literal_function = [identifier], '(', arg_list, ')', '=>' (NL, block | expression)
+    var fn_lit = P.seqMap(
+        identifier.or(P.succeed('')),
+        bracket_open.then(arg_list).skip(bracket_close).skip(fat_arrow),
+        (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
         (name, args, body) => {
             return new AST.Fn(name, args, body)
         }
     )
 
-    var fn_app = Parsimmon.seqMap(
+    // application
+    var fn_app = P.seqMap(
         identifier,
-        Parsimmon.string('(').then(exp_space).then(Parsimmon.lazy(() => {
+        P.string('(').then(exp_space).then(P.lazy(() => {
             return expression_list
-        })).skip(Parsimmon.string(')')),
+        })).skip(P.string(')')),
         (name, exps) => {
             return new AST.Application(name, exps)
         }
     )
 
-    expression = fn_lit.or(fn_app).or(variable).or(int_lit).skip(exp_space)
+    // ID
+    var variable = identifier.map((id) => {
+        return new AST.Variable(id)
+    })
 
-    expression_list = Parsimmon.sepBy(expression, Parsimmon.string(','))
+    // INT
+    var int_lit = P.regexp(/[0-9]+/).map((i) => {
+        return new AST.Literal_Int(parseInt(i))
+    })
+    
+    // tuple = '(', expression_list, ')'
+    var tuple = bracket_open.then(expression_list).skip(bracket_close).map((exp_list) => {
+        return (exp_list.length === 0) ? new AST.Unit() : new AST.Literal_Tuple(exp_list)
+    })
+
+    // expression = literal_function | application | variable | literal_integer
+    expression_lazy = fn_lit.or(fn_app).or(tuple).or(variable).or(int_lit).skip(exp_space)
+
+    // expression_list = expression, {',', expression}
+    expression_list_lazy = P.sepBy(expression, comma)
 
     //------------------------------------------------------------------------
     // Statements
 
-    var assign_keyword = Parsimmon.string('let')
-    var assignment = Parsimmon.seqMap(
-            assign_keyword.then(space).then(identifier).skip(space).skip(assign).skip(space),
+    var assign_keyword = P.string('let')
+    var assignment = P.seqMap(
+            assign_keyword.then(space).then(identifier).skip(assign).skip(space),
             expression,
             (name, expr) => {
                 return new AST.Declaration(name, expr)
@@ -126,7 +156,7 @@ var exports = (s) => {
     )
 
 
-    var return_keyword = Parsimmon.string('return')
+    var return_keyword = P.string('return')
 
     var rtn = return_keyword.then(space).then(expression).map((exp) => {
         return new AST.Return(exp)
@@ -137,9 +167,9 @@ var exports = (s) => {
     //------------------------------------------------------------------------
     // Blocks
 
-    block = Parsimmon.succeed({}).chain(() => {
+    block_lazy = P.succeed({}).chain(() => {
         var indent = Indent.get()
-        return Parsimmon.seqMap(
+        return P.seqMap(
             newline.many().then(Indent.relative(Indent.gt).map((i) => Indent.set(i))).then(statement),
             (newline.many().then(Indent.relative(Indent.eq).map((i) => Indent.set(i))).then(statement)).many(),
             (first, blk) => {
@@ -158,8 +188,8 @@ var exports = (s) => {
     })
 
     return top_level.parse(s)
+    
 }
-
 
 return exports
 })()

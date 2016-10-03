@@ -6,6 +6,16 @@ module.exports = (() => {
         this.value = v
     }
 
+    function Literal_Array(l) {
+        this.type = 'literal_array'
+        this.expressions = l
+    }
+
+    function Literal_Tuple(l) {
+        this.type = 'tuple'
+        this.expressions = l
+    }
+
     function Variable(n) {
         this.type = 'variable'
         this.name = n
@@ -48,6 +58,8 @@ module.exports = (() => {
 
     return {
         Literal_Int : Literal_Int,
+        Literal_Array : Literal_Array,
+        Literal_Tuple : Literal_Tuple,
         Variable : Variable,
         Application : Application,
         Fn : Fn,

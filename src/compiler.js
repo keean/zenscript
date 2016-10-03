@@ -1,11 +1,12 @@
 var compile = (() => {
     "use strict"
 
+    var fs = require('fs')
+    var path = require('path')
     var ast = require('./ast.js')
     var parse = require('./parse.js')
     var generate = require('./generate.js')
-    var fs = require('fs')
-    var path = require('path')
+    var pass_tuple_convert = require('./pass-tuple-convert.js')
 
     return (source) => {
         if (path.extname(source) !== '.zs') {
@@ -19,6 +20,8 @@ var compile = (() => {
                 return console.log(err)
             }
 
+            //----------------------------------------------------------------
+            // Parse Source
             var ast = parse(data)
 
             fs.writeFile(debug, JSON.stringify(ast, null, '  '), (err) => {
@@ -31,6 +34,12 @@ var compile = (() => {
                 return console.log(ast.value)
             }  
 
+            //----------------------------------------------------------------
+            // Compiler Passes
+            ast.value.pass_tuple_convert()
+
+            //----------------------------------------------------------------
+            // Generate Target
             fs.writeFile(dest, ast.value.generate(), (err) => {
                 if (err) {
                     return console.log(err)

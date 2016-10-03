@@ -7,6 +7,14 @@ AST.Literal_Int.prototype.generate = function() {
     return this.value.toString()
 }
 
+AST.Literal_Array.prototype.generate = function() {
+    return '[' + this.expressions.map((x) => x.generate()).join(', ') + ']'
+}
+
+AST.Literal_Tuple.prototype.generate = function() {
+    throw 'Target language does not support tuples.'
+}
+
 AST.Variable.prototype.generate = function() {
     return this.name
 }
