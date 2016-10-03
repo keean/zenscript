@@ -1,6 +1,7 @@
 var compile = (() => {
     "use strict"
 
+    var ast = require('./ast.js')
     var parse = require('./parse.js')
     var generate = require('./generate.js')
     var fs = require('fs')
@@ -30,7 +31,7 @@ var compile = (() => {
                 return console.log(ast.value)
             }  
 
-            fs.writeFile(dest, generate(ast.value), (err) => {
+            fs.writeFile(dest, ast.value.generate(), (err) => {
                 if (err) {
                     return console.log(err)
                 }

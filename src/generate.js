@@ -1,55 +1,38 @@
 module.exports = (() => {
     "use strict"
 
-function gen_fn(ast) {
-    return 'function ' + ast.fn + '(' + ast.args.join(',') + '){' + gen_blk(ast.body) + '}'
+var AST = require('../src/ast.js')
+
+AST.Literal_Int.prototype.generate = function() {
+    return this.value.toString()
 }
 
-function gen_exp(ast) {
-    if (ast.lit) {
-        return ast.lit.toString()
-    } else if (ast.var) {
-        return ast.var
-    } else if (ast.app) {
-        return ast.app + '(' + ast.args.map(gen_exp).join(',') + ')'
-    } else if (ast.fn !== undefined) {
-        return gen_fn(ast)
-    } else {
-        return ''
-    }
+AST.Variable.prototype.generate = function() {
+    return this.name
 }
 
-function gen_stmt(ast) {
-    if (ast.fn) {
-        return gen_fn(ast)
-    } else if (ast.decl) {
-        return 'var ' + ast.decl + '=' + gen_exp(ast.exp) + ';'
-    } else if (ast.ass) {
-        return ast.ass + '=' + gen_exp(ast.exp) + ';'
-    } else if (ast.rtn) {
-       return 'return ' + gen_exp(ast.rtn) + ';'
-    } else if (ast.app) {
-        return ast.app + '(' + ast.args.map(gen_exp).join(',') + ');'
-    } else {
-        var exp = gen_exp(ast)
-        if (exp !== '') {
-            exp += ';'
-        }
-        return exp
-    }
+AST.Application.prototype.generate = function() {
+    return this.name + '(' + this.args.map((x) => x.generate()).join(',') + ')'
 }
 
-function gen_blk(ast) {
-    if (ast.blk) {
-        return ast.blk.map(gen_stmt).join('')
-    } else {
-        return gen_stmt(ast)
-    }
+AST.Fn.prototype.generate = function() {
+    return 'function ' + this.name + '(' + this.args.join(',') + '){' + this.body.generate() + '}'
 }
 
-var exports = function generate(ast) {
-    return gen_blk(ast)
+AST.Declaration.prototype.generate = function() {
+    return 'var ' + this.name + '=' + this.expression.generate() + ';'
 }
 
-return exports
+AST.Assignment.prototype.generate = function() {
+    return this.name + '=' + this.expression.generate() + ';'
+}
+
+AST.Return.prototype.generate = function() {
+    return 'return ' + this.expression.generate() + ';'
+}
+
+AST.Block.prototype.generate = function() {
+    return this.statements.map((x) => x.generate()).join('')
+}
+
 })()

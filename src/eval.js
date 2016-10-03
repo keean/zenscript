@@ -13,7 +13,9 @@ var eval_file = (() => {
                 return console.log(err)
             }
 
+            /* jshint evil:true */
             console.log(eval(data))
+            /* jshint evil:false */
         })
     }
 })()
