@@ -69,7 +69,7 @@ var exports = (s) => {
     })
 
     var int_lit = Parsimmon.regexp(/[0-9]+/).map((i) => {
-        return new AST.Literal_Int(i)
+        return new AST.Literal_Int(parseInt(i))
     })
 
     // definitions for recursive parsers
