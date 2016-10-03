@@ -1,7 +1,7 @@
-module.exports = (() => {
-    "use strict"
+(() => {
+"use strict"
 
-// This pass removed tuples from the AST
+// This pass rewrites the AST converting Literal_Tuple -> Literal_Array
 
 var AST = require('../src/ast.js')
 
