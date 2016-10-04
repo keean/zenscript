@@ -6,7 +6,16 @@ var compile = (() => {
     var ast = require('./ast.js')
     var parse = require('./parse.js')
     var generate = require('./generate.js')
+    var pass_typing = require('./pass-typing.js')
     var pass_tuple_convert = require('./pass-tuple-convert.js')
+
+    function write_ast(file, ast) {
+        fs.writeFile(file, JSON.stringify(ast, null, '  '), (err) => {
+            if (err) {
+                return console.log(err)
+            }
+        })
+    }
 
     return (source) => {
         if (path.extname(source) !== '.zs') {
@@ -30,27 +39,27 @@ var compile = (() => {
             var parse_end = new Date().getTime()
             console.log('parse time: ' + (parse_end - parse_start) + 'ms')
 
-            fs.writeFile(debug, JSON.stringify(ast, null, '  '), (err) => {
-                if (err) {
-                    return console.log(err)
-                }
-            })
-
             if (!ast.status) {
                 return console.log(ast.value)
             }  
 
             //----------------------------------------------------------------
             // Compiler Passes
-            var pass1_start = new Date().getTime()
+            var pass_start = new Date().getTime()
+
+            ast.value.pass_typing()
+
+            write_ast(debug, ast) // write AST after typing
+
             ast.value.pass_tuple_convert()
-            var pass1_end = new Date().getTime()
-            console.log('pass 1 time: ' + (parse_end - parse_start) + 'ms')
+
+            var pass_end = new Date().getTime()
+            console.log('pass time: ' + (parse_end - parse_start) + 'ms')
 
             //----------------------------------------------------------------
             // Generate Target
             var write_start = new Date().getTime()
-            fs.writeFile(dest, ast.value.generate(), (err) => {
+            fs.writeFile(dest, ast.value.generate(0), (err) => {
                 if (err) {
                     return console.log(err)
                 }

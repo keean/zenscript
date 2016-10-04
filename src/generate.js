@@ -3,44 +3,49 @@ module.exports = (() => {
 
 var AST = require('../src/ast.js')
 
-AST.Literal_Int.prototype.generate = function() {
+function spaces(i) {
+    return ' '.repeat(i)
+}
+
+AST.Literal_Int.prototype.generate = function(indent) {
     return this.value.toString()
 }
 
-AST.Literal_Array.prototype.generate = function() {
-    return '[' + this.expressions.map((x) => x.generate()).join(', ') + ']'
+AST.Literal_Array.prototype.generate = function(indent) {
+    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']'
 }
 
-AST.Literal_Tuple.prototype.generate = function() {
+AST.Literal_Tuple.prototype.generate = function(indent) {
     throw 'Target language does not support tuples.'
 }
 
-AST.Variable.prototype.generate = function() {
+AST.Variable.prototype.generate = function(indent) {
     return this.name
 }
 
-AST.Application.prototype.generate = function() {
-    return this.name + '(' + this.args.map((x) => x.generate()).join(',') + ')'
+AST.Application.prototype.generate = function(indent) {
+    return this.name + '(' + this.args.map((x) => x.generate(indent)).join(',') + ')'
 }
 
-AST.Fn.prototype.generate = function() {
-    return 'function ' + this.name + '(' + this.args.join(',') + '){' + this.body.generate() + '}'
+AST.Fn.prototype.generate = function(indent) {
+    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(',') + ') {\n' +
+        this.body.generate(indent + 3) + spaces(indent) + '}'
 }
 
-AST.Declaration.prototype.generate = function() {
-    return 'var ' + this.name + '=' + this.expression.generate() + ';'
+AST.Declaration.prototype.generate = function(indent) {
+    return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + ';\n'
 }
 
-AST.Assignment.prototype.generate = function() {
-    return this.name + '=' + this.expression.generate() + ';'
+AST.Assignment.prototype.generate = function(indent) {
+    return spaces(indent) + this.name + ' = ' + this.expression.generate(indent) + ';\n'
 }
 
-AST.Return.prototype.generate = function() {
-    return 'return ' + this.expression.generate() + ';'
+AST.Return.prototype.generate = function(indent) {
+    return spaces(indent) + 'return ' + this.expression.generate(indent) + ';\n'
 }
 
-AST.Block.prototype.generate = function() {
-    return this.statements.map((x) => x.generate()).join('')
+AST.Block.prototype.generate = function(indent) {
+    return this.statements.map((x) => x.generate(indent)).join('')
 }
 
 })()

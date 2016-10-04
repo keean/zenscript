@@ -43,7 +43,7 @@ AST.Declaration.prototype.pass_tuple_convert = function() {
 }
 
 AST.Assignment.prototype.pass_tuple_convert = function() {
-    this.expression = this.expression.pass__tuple_convert()
+    this.expression = this.expression.pass_tuple_convert()
     return this
 }
 
