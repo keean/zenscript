@@ -55,7 +55,6 @@ var Indent = new IndentationParser(0)
 //------------------------------------------------------------------------
 // Terminals
 
-var assign = P.string('=')
 var space = P.regex(/[ \t]*/)
 var newline = P.string('\n').desc('newline')    // NL
 
