@@ -1,14 +1,14 @@
 {
-  "name": "traitscript",
+  "name": "zenscript",
   "version": "0.0.0",
-  "description": "TraitScript Compiler",
-  "main": "src/traitscript.js",
+  "description": "ZenScript Compiler",
+  "main": "src/compiler.js",
   "scripts": {
     "test": "make test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/keean/traitscript.git"
+    "url": "git+https://github.com/keean/zenscript.git"
   },
   "keywords": [
     "npm",
@@ -18,9 +18,9 @@
   "author": "Keean Schupke <keean.schupke@googlemail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/keean/traitscript/issues"
+    "url": "https://github.com/keean/zenscript/issues"
   },
-  "homepage": "https://github.com/keean/traitscript#readme",
+  "homepage": "https://github.com/keean/zenscript#readme",
   "dependencies": {
     "chai": "^3.5.0"
   },

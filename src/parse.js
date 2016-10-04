@@ -94,6 +94,7 @@ var comma = P.string(',').skip(exp_space)
 var bracket_open = P.string('(').skip(exp_space)
 var bracket_close = P.string(')').skip(exp_space)
 var fat_arrow = P.string('=>').skip(space)
+var assign = P.string('=').skip(space)
 var identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
 
 // arg_list = identifier, {comma, identifier}
@@ -181,6 +182,7 @@ block_lazy = P.succeed({}).chain(() => {
 //------------------------------------------------------------------------
 // Program 
 
+// top_level = {NL}, {INDENT==0, statement, {NL}}
 var top_level = newline.many().then((Indent.absolute(0).map((i) => Indent.set(i)).
         then(statement).skip(newline.many())).many()).map((blk) => {return new AST.Block(blk)})
 
