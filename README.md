@@ -19,7 +19,7 @@ This will output a JavaScript file called t1.js
 ```js
 var id2 = function(x) {
    var id = function(x) {
-      return (x/*{x : t0} t0*/ ,x/*{x : t1} t1*/ )/*{x : t0 & t1} Product<t0, t1>*/ ;
+      return [x/*{x : t0} t0*/ , x/*{x : t1} t1*/ ]/*{x : t0 & t1} Product<t0, t1>*/ ;
    };
    var id3 = function(x) {
       return id/*{id : t2} t2*/ (x/*{x : t3} t3*/ )/*{x : t3} Product<t3>*/ ;
@@ -27,6 +27,7 @@ var id2 = function(x) {
    var y = id/*{id : t4} t4*/ (x/*{x : t5} t5*/ )/*{x : t5} Product<t5>*/ ;
    return id3/*{id3 : t6} t6*/ (y/*{y : t7} t7*/ )/*{y : t7} Product<t7>*/ ;
 };
+id2/*{id2 : t8} t8*/ (42/*Int*/ )/*Product<Int>*/ 
 ```
 and dump the AST into t1.ast.
 ```json
@@ -424,5 +425,5 @@ node src/eval.js t1.js
 ```
 This program should return:
 ```
-42
+[ [ 42, 42 ], [ 42, 42 ] ]
 ```
