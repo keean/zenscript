@@ -51,7 +51,7 @@ var compile = (() => {
 
             write_ast(debug, ast) // write AST after typing
 
-            //ast.value.pass_tuple_convert()
+            ast.value.pass_tuple_convert()
 
             var pass_end = new Date().getTime()
             console.log('pass time: ' + (parse_end - parse_start) + 'ms')

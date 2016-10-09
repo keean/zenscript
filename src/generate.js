@@ -12,11 +12,11 @@ AST.LiteralInt.prototype.generate = function(indent) {
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
-    return '[' + this.expressions.map((x) => x.typing.generate(indent)).join(', ') + ']' + '/*' + this.typing.generate(indent) + '*/ '
+    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' + '/*' + this.typing.generate(indent) + '*/ '
 }
 
 AST.LiteralTuple.prototype.generate = function(indent) {
-    return '(' + this.expressions.map((x) => x.generate(indent)).join(',') + ')' + '/*' + this.typing.generate(indent) + '*/ '
+    return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' + '/*' + this.typing.generate(indent) + '*/ '
 }
 
 AST.Variable.prototype.generate = function(indent) {
@@ -28,7 +28,7 @@ AST.Application.prototype.generate = function(indent) {
 }
 
 AST.Fn.prototype.generate = function(indent) {
-    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(',') + ') {\n' +
+    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
         this.body.generate(indent + 3) + spaces(indent) + '}'
 }
 
