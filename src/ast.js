@@ -2,6 +2,38 @@ module.exports = (() => {
    "use strict"
    let tyvar_id = 0
 
+   class Type {
+      constructor() {
+         this.rank = 0
+      }
+
+      find() {
+         let node = this
+         while (node.parent) {
+            node = node.parent
+         }
+         return node
+      }
+
+      union(that) {
+         if (this.rank < that.rank) {
+            this.parent = that
+         } else if (this.rank > that.rank) {
+            that.parent = this
+         } else {
+            ++that.rank
+            this.parent = that
+         }
+      }
+
+      replace_with(that) {
+         if (this.rank === that.rank) {
+            ++that.rank
+         }
+         this.parent = that
+      }
+   }
+
    return Object.freeze({ 
 
       // Values
@@ -91,19 +123,22 @@ module.exports = (() => {
          }
       },
 
-      TypeConstructor : class {
+      TypeConstructor : class extends Type {
          constructor(n, ps) {
+            super()
             this.tag = 'type_constructor'
             this.constructor = n
             this.params = ps
          }
       },
 
-      TypeVariable : class {
+      TypeVariable : class extends Type {
          constructor() {
+            super()
             this.tag = 'type_variable'
             this.id = tyvar_id++
          }
+
       }
    })
 })()

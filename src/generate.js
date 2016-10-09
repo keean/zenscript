@@ -55,11 +55,11 @@ AST.Typing.prototype.generate = function(indent) {
     if (keys.length > 0) {
         s += '{' + keys.map((key) => {
             return key + ' : ' + this.context[key].map((t) => {
-                return t.generate()
-            }).join(' & ')
+                return t.find().generate()
+            }).join(' /\\ ')
         }).join(', ') + '} '
     }
-    return s + this.type.generate()
+    return s + this.type.find().generate()
 }
 
 AST.TypeVariable.prototype.generate = function(indent) {
@@ -71,7 +71,7 @@ AST.TypeConstructor.prototype.generate = function(indent) {
     if (this.params.length > 0) {
         s += '<'
         for (var i = 0; i < this.params.length; ++i) {
-            s += this.params[i].generate()
+            s += this.params[i].find().generate()
             if (i + 1 < this.params.length) {
                 s += ', '
             }

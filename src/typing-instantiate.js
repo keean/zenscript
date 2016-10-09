@@ -21,7 +21,7 @@ AST.Type_Constructor.prototype.instantiate = function() {
         f = new AST.Type_Constructor(new Array(this.params.length))
         trec_map.set(this, f)
         for (let i = 0; i < this.params.length; ++i) {
-            f.params[i] = this.params[i].instantiate()
+            f.params[i] = this.params[i].find().instantiate()
         }
     }
     return f
@@ -35,7 +35,7 @@ return (typing) => {
     for (const k of Object.keys(typing.context)) {
         merge(context, typeing.context[k])
     }
-    return new Typing(context, typing.type.instantiate())
+    return new Typing(context, typing.type.find().instantiate())
 }
 
 })()
