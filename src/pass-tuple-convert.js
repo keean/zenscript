@@ -6,19 +6,25 @@
 var AST = require('../src/ast.js')
 
 
-AST.Literal_Int.prototype.pass_tuple_convert = function() {
+AST.LiteralInt.prototype.pass_tuple_convert = function() {
     return this
 }
 
-AST.Literal_Array.prototype.pass_tuple_convert = function() {
+AST.LiteralArray.prototype.pass_tuple_convert = function() {
     for(var i = 0; i < this.expressions.length; ++i) {
         this.expressions[i] = this.expressions[i].pass_tuple_convert()
     }
     return this
 }
 
-AST.Literal_Tuple.prototype.pass_tuple_convert = function() {
-    return new AST.Literal_Array(this.expressions)
+AST.LiteralTuple.prototype.pass_tuple_convert = function() {
+   for(var i = 0; i < this.expressions.length; ++i) {
+      this.expressions[i] = this.expressions[i].pass_tuple_convert()
+   }
+
+   const a = new AST.LiteralArray(this.expressions)
+   a.typing = this.typing
+   return a
 }
 
 AST.Variable.prototype.pass_tuple_convert = function() {
@@ -26,9 +32,10 @@ AST.Variable.prototype.pass_tuple_convert = function() {
 }
 
 AST.Application.prototype.pass_tuple_convert = function() {
-    for(var i = 0; i < this.args.length; ++i) {
-        this.args[i] = this.args[i].pass_tuple_convert()
+    for(var i = 0; i < this.arg.expressions.length; ++i) {
+        this.arg.expressions[i] = this.arg.expressions[i].pass_tuple_convert()
     }
+    this.fun = this.fun.pass_tuple_convert()
     return this
 }
 

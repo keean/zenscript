@@ -119,7 +119,7 @@ var fn_app = P.seqMap(
         return expression_list
     })).skip(P.string(')')),
     (name, exps) => {
-        return new AST.Application(name, exps)
+        return new AST.Application(new AST.Variable(name), new AST.LiteralTuple(exps))
     }
 )
 
@@ -130,12 +130,12 @@ var variable = identifier.map((id) => {
 
 // INT
 var int_lit = P.regexp(/[0-9]+/).map((i) => {
-    return new AST.Literal_Int(parseInt(i))
+    return new AST.LiteralInt(parseInt(i))
 })
 
 // tuple = '(', expression_list, ')'
 var tuple = bracket_open.then(expression_list).skip(bracket_close).map((exp_list) => {
-    return (exp_list.length === 0) ? new AST.Unit() : new AST.Literal_Tuple(exp_list)
+    return (exp_list.length === 0) ? new AST.Unit() : new AST.LiteralTuple(exp_list)
 })
 
 // expression = literal_function | application | variable | literal_integer

@@ -1,37 +1,41 @@
 (() => {
 "use strict"
 
-// Typing
-
 var AST = require('../src/ast.js')
+var MultiMap = require('../src/multimap.js')
 
-var Integer_Type = new AST.Type_Constructor('Int', [])
 
-AST.Literal_Int.prototype.pass_typing = function() {
-    this.typing = new AST.Typing({}, Integer_Type)
+var IntegerType = new AST.TypeConstructor('Int', [])
+
+AST.LiteralInt.prototype.pass_typing = function() {
+    this.typing = new AST.Typing(new MultiMap(), IntegerType)
 }
 
 AST.Variable.prototype.pass_typing = function() {
-    var tyvar = new AST.Type_Variable()
-    var mncxt = {}
-    mncxt[this.name] = tyvar
-    this.typing = new AST.Typing(mncxt, tyvar)
+    var tyvar = new AST.TypeVariable()
+    var context = new MultiMap()
+    context.set(this.name, tyvar)
+    this.typing = new AST.Typing(context, tyvar)
 }
 
-AST.Literal_Array.prototype.pass_typing = function() {
+AST.LiteralTuple.prototype.pass_typing = function() {
+    const context = new MultiMap()
+    const type = new AST.TypeConstructor('Product', new Array(this.expressions.length))
+    for (const [i,exp] of this.expressions.entries()) {
+        exp.pass_typing()
+        context.union(exp.typing.context)
+        type.params[i] = exp.typing.type
+    }
+    this.typing = new AST.Typing(context, type)
+}
+
+AST.LiteralArray.prototype.pass_typing = function() {
     throw 'array literal not supported in source language'
 }
 
-AST.Literal_Tuple.prototype.pass_typing = function() {
-    for(var i = 0; i < this.expressions.length; ++i) {
-        this.expressions[i].pass_typing()
-    }
-}
-
 AST.Application.prototype.pass_typing = function() {
-    for(var i = 0; i < this.args.length; ++i) {
-        this.args[i].pass_typing()
-    }
+    this.fun.pass_typing()
+    this.arg.pass_typing()
 }
 
 AST.Fn.prototype.pass_typing = function() {
@@ -40,6 +44,7 @@ AST.Fn.prototype.pass_typing = function() {
 
 AST.Declaration.prototype.pass_typing = function() {
     this.expression.pass_typing()
+  
 }
 
 AST.Assignment.prototype.pass_typing = function() {
