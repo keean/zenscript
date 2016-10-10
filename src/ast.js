@@ -2,6 +2,14 @@ module.exports = (() => {
    "use strict"
    let tyvar_id = 0
 
+   //-------------------------------------------------------------------------
+   // Base class for type nodes provides union-find methods for finding the
+   // representative type for an equivalence class. The 'union' and
+   // 'replaceWith' methods connect the types together with directed edges
+   // the 'find' method finds the representative type by following the 
+   // directed edges. Union-find replaces substitution in unification 
+   // resulting in an efficient algorithm that can cope with cycles.
+
    class Type {
       constructor() {
          this.rank = 0
@@ -26,13 +34,16 @@ module.exports = (() => {
          }
       }
 
-      replace_with(that) {
+      replaceWith(that) {
          if (this.rank === that.rank) {
             ++that.rank
          }
          this.parent = that
       }
    }
+
+   //-------------------------------------------------------------------------
+   // The AST classes are implemented so they can be serialised to JSON
 
    return Object.freeze({ 
 

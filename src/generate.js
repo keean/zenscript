@@ -24,7 +24,7 @@ AST.Variable.prototype.generate = function(indent) {
 }
 
 AST.Application.prototype.generate = function(indent) {
-    return this.fun.generate() + this.arg.generate()
+    return this.fun.generate() + this.arg.generate() + '/*' + this.typing.generate(indent) + '*/ '
 }
 
 AST.Fn.prototype.generate = function(indent) {
@@ -48,6 +48,9 @@ AST.Block.prototype.generate = function(indent) {
     return this.statements.map((x) => x.generate(indent)).join('')
 }
 
+//----------------------------------------------------------------------------
+// The type generation methods need to use 'find' for each node to make sure
+// it is using the representative type for each equivalence class
 
 AST.Typing.prototype.generate = function(indent) {
     const keys = Object.keys(this.context)

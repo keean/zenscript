@@ -3,9 +3,16 @@ module.exports = (() => {
 
 const AST = require('../src/ast.js')
 
+//----------------------------------------------------------------------------
+// The unification algorithm needs to derefence each node using 'find' to make
+// sure we are using the representative type from each equivalence class.
+// This algorithm is recursion free, using a 'todo' list to capture
+// unifications to be done next. This minimises the memory usage by avoiding
+// large stack depths in complex unifications, and also allows early bail-out
+// as soon as the failure flag is set.
+
 const todo = []
 let unifies = true
-
 
 AST.TypeVariable.prototype.variable_unify = function(that) {
    this.union(that)
@@ -22,7 +29,7 @@ AST.TypeVariable.prototype.constructor_unify = function(that) {
 AST.TypeConstructor.prototype.constructor_unify = function(that) {
    if (this.params.length === that.params.length) {
       for(let i = 0; i < this.params.length; ++i) {
-         todo.push([this.params[i], that.params[i])
+         todo.push([this.params[i], that.params[i]])
       }
    } else {
       unifies = false
@@ -52,6 +59,8 @@ return (a, b) => {
          u.unify(v)
       }
    }
+
+   return unifies
 }
 
 })()
