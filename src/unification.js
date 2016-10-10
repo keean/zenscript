@@ -48,6 +48,7 @@ AST.TypeConstructor.prototype.unify = function(that) {
 
 return (a, b) => {
    unifies= true
+   todo.length = 0
    todo.push([a, b])
 
    while (todo.length > 0 && unifies) {

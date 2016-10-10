@@ -14,20 +14,18 @@ AST.LiteralInt.prototype.pass_typing = function() {
 }
 
 AST.Variable.prototype.pass_typing = function() {
-    var tyvar = new AST.TypeVariable()
-    var context = new MultiMap()
-    context.set(this.name, tyvar)
-    this.typing = new AST.Typing(context, tyvar)
+    this.typing = new AST.Typing(new MultiMap(), new AST.TypeVariable())
+    this.typing.context.set(this.name, this.typing.type)
     return this.typing
 }
 
 AST.LiteralTuple.prototype.pass_typing = function() {
     const context = new MultiMap()
     const type = new AST.TypeConstructor('Product', new Array(this.expressions.length))
-    for (const [i,exp] of this.expressions.entries()) {
-        exp.pass_typing()
-        context.union(exp.typing.context)
-        type.params[i] = exp.typing.type
+    for (let i = 0; i < this.expressions.length; ++i) {
+        const typing = this.expressions[i].pass_typing()
+        context.union(typing.context)
+        type.params[i] = typing.type
     }
     this.typing = new AST.Typing(context, type)
     return this.typing
@@ -42,7 +40,7 @@ AST.Application.prototype.pass_typing = function() {
     const a = this.arg.pass_typing().instantiate()
     f.context.union(a.context)
     const t = new AST.Typing(f.context, new AST.TypeVariable())
-    const u = new AST.TypeConstructor('->', [a.type, t.type])
+    const u = new AST.TypeConstructor('Apply', [a.type, t.type])
     unify(f.type, u)
     this.typing = t
     return this.typing
