@@ -61,6 +61,7 @@ return (a, b) => {
       }
    }
 
+   todo.length = 0
    return unifies
 }
 
