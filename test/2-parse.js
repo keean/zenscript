@@ -4,24 +4,35 @@ var AST = require('../src/ast.js')
 var parse = require('../src/parse.js')
 
 describe('Parse', () => {
-    it('parse empty source', () => {
-        expect(parse('')).to.deep.equal({
-            'status' : true,
-            'value' : new AST.Block([])
-        })
-    })
+   it('parse empty source', () => {
+      expect(parse('')).to.deep.equal({
+         'status' : true,
+         'value' : new AST.Block([])
+      })
+   })
 
-    it('parse identifier', () => {
-        expect(parse('xyz')).to.deep.equal({
-            'status' : true,
-            'value' : new AST.Block([new AST.Variable('xyz')])
-        })
-    })
+   it('parse identifier', () => {
+      expect(parse('xyz')).to.deep.equal({
+         'status' : true,
+         'value' : new AST.Block([new AST.Variable('xyz')])
+      })
+   })
+
+   it('parse application', () => {
+      expect(parse('f(x)')).to.deep.equal({
+         "status": true,
+         "value": new AST.Block([
+            new AST.Application(
+               new AST.Variable('f'),
+               new AST.LiteralTuple([new AST.Variable('x')]
+            ))])
+      })
+   })
 
     it('parse simple assignment', () => {
         expect(parse('let x = 3')).to.deep.equal({
             'status' : true,
-            'value' : new AST.Block([new AST.Declaration('x', new AST.Literal_Int(3))])
+            'value' : new AST.Block([new AST.Declaration('x', new AST.LiteralInt(3))])
         })
     })
 
@@ -29,7 +40,7 @@ describe('Parse', () => {
         expect(parse('let x = 3\nx')).to.deep.equal({
             'status' : true,
             'value' : new AST.Block([
-                new AST.Declaration('x', new AST.Literal_Int(3)),
+                new AST.Declaration('x', new AST.LiteralInt(3)),
                 new AST.Variable('x')
             ])
         })
@@ -56,7 +67,7 @@ describe('Parse', () => {
             'status' : true,
             'value' : new AST.Block([
                 new AST.Declaration('id', new AST.Fn('id', ['x'], new AST.Return(new AST.Variable('x')))),
-                new AST.Application('id', [new AST.Literal_Int(42)])
+                new AST.Application(new AST.Variable('id'), new AST.LiteralTuple([new AST.LiteralInt(42)]))
             ])
         })
     })
@@ -66,8 +77,8 @@ describe('Parse', () => {
             'status' : true,
             'value' : new AST.Block([
                 new AST.Declaration('f', new AST.Fn('', ['x'], new AST.Block([
-                    new AST.Application('g', [new AST.Variable('x')]),
-                    new AST.Application('g', [new AST.Variable('x')])
+                    new AST.Application(new AST.Variable('g'), new AST.LiteralTuple([new AST.Variable('x')])),
+                    new AST.Application(new AST.Variable('g'), new AST.LiteralTuple([new AST.Variable('x')]))
                 ])))
             ])
         })

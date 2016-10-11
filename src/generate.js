@@ -4,27 +4,32 @@ module.exports = (() => {
 const AST = require('../src/ast.js')
 
 function spaces(i) {
-    return ' '.repeat(i)
+   return ' '.repeat(i)
 }
 
 AST.LiteralInt.prototype.generate = function(indent) {
-    return this.value.toString() + '/*' + this.typing.generate(indent) + '*/ '
+   return this.value.toString() +
+      ((this.typing) ? ('/*' + this.typing.generate(indent) + '*/ ') : '')
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
-    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' + '/*' + this.typing.generate(indent) + '*/ '
+   return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' +
+      ((this.typing) ? ('/*' + this.typing.generate(indent) + '*/ ') : '')
 }
 
 AST.LiteralTuple.prototype.generate = function(indent) {
-    return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' + '/*' + this.typing.generate(indent) + '*/ '
+   return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' +
+      ((this.typing) ? ('/*' + this.typing.generate(indent) + '*/ ') : '')
 }
 
 AST.Variable.prototype.generate = function(indent) {
-    return this.name + '/*' + this.typing.generate() + '*/ '
+   return this.name +
+      ((this.typing) ? ('/*' + this.typing.generate() + '*/ ') : '')
 }
 
 AST.Application.prototype.generate = function(indent) {
-    return this.fun.generate() + this.arg.generate() + '/*' + this.typing.generate(indent) + '*/ '
+   return this.fun.generate() + this.arg.generate() +
+      ((this.typing) ? ('/*' + this.typing.generate(indent) + '*/ ') : '')
 }
 
 AST.Fn.prototype.generate = function(indent) {
@@ -82,6 +87,10 @@ AST.TypeConstructor.prototype.generate = function(indent) {
         s += '>'
     }
     return s
+}
+
+return (ast) => {
+   return ast.generate(0)
 }
 
 })()

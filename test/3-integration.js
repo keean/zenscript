@@ -5,7 +5,7 @@ var generate = require('../src/generate.js')
 
 describe('Integration', () => {
     it('parse simple assignment, and expression, then generate', () => {
-        expect((parse('let x = 3\nx').value).generate()).to.equal('var x=3;x')
+        expect((parse('let x = 3\nx').value).generate()).to.equal('var x = 3;\nx')
     })
 
     it('parse simple assignment, and expression, then generate and eval', () => {
@@ -15,7 +15,7 @@ describe('Integration', () => {
     })
 
     it('parse function assignment, and expression, then generate', () => {
-        expect((parse('let id = id(x) => x').value).generate()).to.equal('var id=function id(x){return x;};')
+        expect((parse('let id = id(x) => x').value).generate()).to.equal('var id = function id(x) {\nreturn x;\n};\n')
     })
 
     it('parse function assignment, and application, then generate', () => {
