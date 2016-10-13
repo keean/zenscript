@@ -55,13 +55,38 @@ var Indent = new IndentationParser(0)
 //------------------------------------------------------------------------
 // Terminals
 
+// exp_space = {' '}, [NL, {NL}, INDENT.>];
 var space = P.regex(/[ \t]*/)
 var newline = P.string('\n').desc('newline')    // NL
+var exp_space = space.then((newline.atLeast(1).then(Indent.relative(Indent.gt))).atMost(1))
+var comma = P.string(',').skip(exp_space)
 
-// TID
-var tid = P.regexp(/[A-Z].[a-z]/).map((n) => {
-    return new AST.Type(n)
+//------------------------------------------------------------------------
+// Types
+
+const typeVariable = P.regexp(/[A-Z]+/).map((n) => {
+    return new AST.TypeVariable(n)
 })
+
+let typeListLazy
+const typeList = P.lazy(() => {return typeListLazy})
+
+const typeConstructor = P.seqMap(
+   P.regexp(/^(?=[a-z]+)[A-Z][a-zA-Z]+/),
+   (P.string('<').then(typeList).skip(P.string('>'))).or(P.succeed([])),
+   AST.TypeConstructor
+)
+
+const typeExpression = typeConstructor.or(typeVariable)
+
+typeListLazy = P.sepBy(typeExpression, comma)
+
+function typeParser(s) {
+   return typeExpression.parse(s)
+}
+
+//------------------------------------------------------------------------
+// Values
 
 // FLOAT
 var literal_float = P.regexp(/[0-9]+\.[0-9]+/).map((n) => {
@@ -89,10 +114,7 @@ var block = P.lazy(() => {return block_lazy})
 //------------------------------------------------------------------------
 // Expressions
 
-// exp_space = {' '}, [NL, {NL}, INDENT.>];
-var exp_space = space.then((newline.atLeast(1).then(Indent.relative(Indent.gt))).atMost(1))
 
-var comma = P.string(',').skip(exp_space)
 var bracket_open = P.string('(').skip(exp_space)
 var bracket_close = P.string(')').skip(exp_space)
 var fat_arrow = P.string('=>').skip(space)
