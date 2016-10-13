@@ -20,6 +20,10 @@ return class {
       this[key].push(value)
    }
 
+   erase(key) {
+      delete this[key]
+   }
+
    union(that) {
       for (const key of Object.keys(that)) {
          if (this[key] === undefined) {
@@ -29,6 +33,10 @@ return class {
             this[key].push(t)
          }
       }
+   }
+
+   keys() {
+      return Object.keys(this)
    }
 
    forEach(f) {

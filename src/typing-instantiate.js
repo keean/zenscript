@@ -44,4 +44,10 @@ AST.Typing.prototype.instantiate = function() {
    return new AST.Typing(context, this.type.find().instantiate())
 }
 
+return (ast) => {
+   if (ast) { // FIXME
+      return ast.instantiate()
+   }
+}
+
 })()

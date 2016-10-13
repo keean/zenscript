@@ -2,6 +2,7 @@ module.exports = (() => {
 "use strict"
 
 const AST = require('../src/ast.js')
+const getVariables = require('../src/typing-getvars.js')
 
 //----------------------------------------------------------------------------
 // The unification algorithm needs to derefence each node using 'find' to make
@@ -45,8 +46,7 @@ AST.TypeConstructor.prototype.unify = function(that) {
    that.constructor_unify(this)
 }
 
-
-return (a, b) => {
+function unify(a, b) {
    unifies= true
    todo.length = 0
    todo.push([a, b])
@@ -63,6 +63,18 @@ return (a, b) => {
 
    todo.length = 0
    return unifies
+}
+
+return {
+   unify: unify,
+
+   mgu(a, b) {
+      const tyvars = new Set()
+      getVariables(a, tyvars)
+      getVariables(b, tyvars)
+      unify(a, b)
+      return tyvars
+   }
 }
 
 })()
