@@ -35,7 +35,7 @@ var compile = (() => {
             //----------------------------------------------------------------
             // Parse Source
             var parse_start = new Date().getTime()
-            var ast = parse(data)
+            var ast = parse.program(data)
             var parse_end = new Date().getTime()
             console.log('parse time: ' + (parse_end - parse_start) + 'ms')
 

@@ -81,10 +81,6 @@ const typeExpression = typeConstructor.or(typeVariable)
 
 typeListLazy = P.sepBy(typeExpression, comma)
 
-function typeParser(s) {
-   return typeExpression.parse(s)
-}
-
 //------------------------------------------------------------------------
 // Values
 
@@ -210,8 +206,14 @@ block_lazy = P.succeed({}).chain(() => {
 var top_level = newline.many().then((Indent.absolute(0).map((i) => Indent.set(i)).
         then(statement).skip(newline.many())).many()).map((blk) => {return new AST.Block(blk)})
 
-return (s) => {
-    return top_level.parse(s)
+return {
+   program(s) {
+      return top_level.parse(s)
+   },
+
+   type(s) {
+      return typeExpression.parse(s)
+   }
 }
 
 })()
