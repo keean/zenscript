@@ -129,8 +129,8 @@ return class {
    vars(vs) {
       let str = ''
       for (const v of vs) {
-         //console.log(JSON.stringify(v))
-         //v.muConvert(this)
+         this.visited_set.clear()
+         v.muConvert(this)
          this.visited_set.clear()
          str += v.show(this) + ' = '
          const u = v.find()

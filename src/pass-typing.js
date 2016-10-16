@@ -79,7 +79,7 @@ AST.Return.prototype.pass_typing = function() {
 
 AST.Block.prototype.pass_typing = function() {
    for(var i = 0; i < this.statements.length; ++i) {
-       this.statements[i].pass_typing()
+      this.statements[i].pass_typing()
    }
    this.typeing = this.statements[this.statements.length - 1].typing
    return this.typing
