@@ -20,7 +20,7 @@ AST.TypeConstructor.prototype.muConvert = function() {
          this.params[i].find().muConvert()
       }
       visited_set.delete(this)
-   } else if (!mu_map.get(this)) {
+   } else if (mu_map.get(this) === undefined) {
       mu_map.set(this, vid++)
    }
 }

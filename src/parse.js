@@ -5,7 +5,6 @@ var P = require('parsimmon')
 var AST = require('../src/ast.js')
 var unify = require('../src/unification.js')
 var show = require('../src/typing-show.js')
-var inst = require('../src/typing-instantiate.js')
 
 //------------------------------------------------------------------------
 // Indentation Parser
