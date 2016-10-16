@@ -4,7 +4,7 @@
 const AST = require('../src/ast.js')
 const MultiMap = require('../src/multimap.js')
 const inst = require('../src/typing-instantiate.js')
-const unify = require('../src/unification.js').unify
+const unify = require('../src/unification.js')
 
 const IntegerType = new AST.TypeConstructor('Int', [])
 
@@ -41,7 +41,7 @@ AST.Application.prototype.pass_typing = function() {
    f.context.union(a.context)
    const t = new AST.Typing(f.context, new AST.TypeVariable())
    const u = new AST.TypeConstructor('Arrow', [a.type, t.type])
-   unify(f.type, u)
+   unify.types(f.type, u)
    this.typing = t
    return this.typing
 }

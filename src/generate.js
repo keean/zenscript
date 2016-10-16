@@ -2,7 +2,8 @@ module.exports = (() => {
     "use strict"
 
 const AST = require('../src/ast.js')
-const show = require('../src/typing-show.js')
+const Show = require('../src/typing-show.js')
+const show = new Show()
 
 function spaces(i) {
    return ' '.repeat(i)
@@ -10,27 +11,27 @@ function spaces(i) {
 
 AST.LiteralInt.prototype.generate = function(indent) {
    return this.value.toString() +
-      ((this.typing) ? ('/*' + show(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' +
-      ((this.typing) ? ('/*' + show(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
 }
 
 AST.LiteralTuple.prototype.generate = function(indent) {
    return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' +
-      ((this.typing) ? ('/*' + show(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
 }
 
 AST.Variable.prototype.generate = function(indent) {
    return this.name +
-      ((this.typing) ? ('/*' + show(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
 }
 
 AST.Application.prototype.generate = function(indent) {
    return this.fun.generate() + this.arg.generate() +
-      ((this.typing) ? ('/*' + show(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
 }
 
 AST.Fn.prototype.generate = function(indent) {

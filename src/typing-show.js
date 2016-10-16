@@ -81,9 +81,9 @@ AST.TypeConstructor.prototype.show = function(cxt) {
 
 AST.Typing.prototype.show = function(cxt) {
    let str = ''
-   if (this.context.length > 0) {
+   const keys = this.context.keys()
+   if (keys.length > 0) {
       str = '{'
-      const keys = this.context.keys()
       for (let i = 0; i < keys.length; ++i) {
          str += keys[i] + ': ' 
          const vals = this.context[keys[i]]
@@ -97,7 +97,7 @@ AST.Typing.prototype.show = function(cxt) {
             str += ', '
          }
       }
-      str += '}'
+      str += '} '
    }
    str += this.type.find().show(cxt)
    return str
@@ -109,6 +109,13 @@ return class {
       this.visited_set = new Set()
       this.mu_map = new Map()
       this.vid = 0
+   }
+
+   typing(t) {
+      this.visited_set.clear()
+      t.muConvert(this)     
+      this.visited_set.clear()
+      return t.show(this)
    }
 
    type(t) {
