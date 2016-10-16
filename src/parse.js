@@ -64,22 +64,36 @@ var comma = P.string(',').skip(exp_space)
 //------------------------------------------------------------------------
 // Types
 
+const var_map = new Map()
+
 const typeVariable = P.regexp(/[A-Z]+/).map((n) => {
-    return new AST.TypeVariable(n)
+   const id = var_map.get(n)
+   if (id !== undefined) {
+      return new AST.TypeVariable(n, id)
+   } else {
+      const tyvar = new AST.TypeVariable(n)
+      var_map.set(n, tyvar.id)
+      return tyvar
+   }   
 })
 
 let typeListLazy
 const typeList = P.lazy(() => {return typeListLazy})
 
 const typeConstructor = P.seqMap(
-   P.regexp(/^(?=[a-z]+)[A-Z][a-zA-Z]+/),
+   P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/),
    (P.string('<').then(typeList).skip(P.string('>'))).or(P.succeed([])),
-   AST.TypeConstructor
+   (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
 
-const typeExpression = typeConstructor.or(typeVariable)
+const typeSubExpression = typeConstructor.or(typeVariable)
 
-typeListLazy = P.sepBy(typeExpression, comma)
+typeListLazy = P.sepBy(typeSubExpression, comma)
+
+const typeExpression = P.succeed().chain(() => {
+   var_map.clear()
+   return typeSubExpression
+})
 
 //------------------------------------------------------------------------
 // Values

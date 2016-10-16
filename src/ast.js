@@ -46,6 +46,9 @@ module.exports = (() => {
    // The AST classes are implemented so they can be serialised to JSON
 
    return Object.freeze({ 
+      resetTyvarId() {
+         tyvar_id = 0
+      },
 
       // Values
      
@@ -144,10 +147,11 @@ module.exports = (() => {
       },
 
       TypeVariable : class extends Type {
-         constructor() {
+         constructor(n, id) {
             super()
             this.tag = 'type_variable'
-            this.id = tyvar_id++
+            this.name = n
+            this.id = (id === undefined) ? tyvar_id++ : id
          }
 
       }

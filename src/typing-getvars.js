@@ -29,7 +29,7 @@ AST.Typing.prototype.getVars = function(vars) {
 
 return (ast, vars) => {
    visited.clear()
-   ast.getVars(vars)
+   ast.find().getVars(vars)
    visited.clear()
 }
 

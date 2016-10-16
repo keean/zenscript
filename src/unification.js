@@ -28,7 +28,7 @@ AST.TypeVariable.prototype.constructor_unify = function(that) {
 }
 
 AST.TypeConstructor.prototype.constructor_unify = function(that) {
-   if (this.params.length === that.params.length) {
+   if (this.constructor === that.constructor && this.params.length === that.params.length) {
       for(let i = 0; i < this.params.length; ++i) {
          todo.push([this.params[i], that.params[i]])
       }
@@ -72,8 +72,16 @@ return {
       const tyvars = new Set()
       getVariables(a, tyvars)
       getVariables(b, tyvars)
-      unify(a, b)
-      return tyvars
+      if (unify(a, b)) {
+         for (const v of tyvars) {
+            if (v === v.find()) {
+               tyvars.delete(v)
+            }
+         }
+         return tyvars
+      } else {
+         return undefined
+      }
    }
 }
 
