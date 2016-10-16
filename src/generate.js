@@ -60,7 +60,7 @@ AST.Block.prototype.generate = function(indent) {
 // it is using the representative type for each equivalence class
 
 AST.Typing.prototype.generate = function(indent) {
-    const keys = Object.keys(this.context)
+    const keys = this.context.keys()
     let s = ''
     if (keys.length > 0) {
         s += '{' + keys.map((key) => {
