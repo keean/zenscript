@@ -4,7 +4,7 @@ var repl = (() => {
    const readline = require('readline')
    const AST = require('../src/ast.js')
    const parse = require('../src/parse.js').type
-   const show = require('../src/typing-show.js')
+   const Show = require('../src/typing-show.js')
    const vars = require('../src/typing-getvars.js')
    const mgu = require('../src/unification.js').mgu
 
@@ -20,7 +20,8 @@ var repl = (() => {
          rl.question('type 2: ', (s2) => {
             const t2 = parse(s2)
             if (t2.status) {
-               console.log(show.type(new AST.TypeConstructor('Mgu', [t1.value, t2.value])))
+               const show = new Show()
+               console.log('(' + show.type(t1.value) + ') mgu (' + show.type(t2.value) + ')')
                const vs = mgu(t1.value, t2.value)
                if (vs === undefined) {
                   console.log('Unification failed.\n')
