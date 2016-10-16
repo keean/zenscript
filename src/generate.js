@@ -11,27 +11,27 @@ function spaces(i) {
 
 AST.LiteralInt.prototype.generate = function(indent) {
    return this.value.toString() +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.LiteralTuple.prototype.generate = function(indent) {
    return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Variable.prototype.generate = function(indent) {
    return this.name +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Application.prototype.generate = function(indent) {
    return this.fun.generate() + this.arg.generate() +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Fn.prototype.generate = function(indent) {
