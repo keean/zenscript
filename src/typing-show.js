@@ -113,17 +113,23 @@ return class {
 
    type(t) {
       const u = t.find()
+      this.visited_set.clear()
       u.muConvert(this)
+      this.visited_set.clear()
       return u.show(this)
    }
    
    vars(vs) {
       let str = ''
       for (const v of vs) {
+         //console.log(JSON.stringify(v))
          //v.muConvert(this)
-         str += '   ' + v.show(this) + ' = '
+         this.visited_set.clear()
+         str += v.show(this) + ' = '
          const u = v.find()
+         this.visited_set.clear()
          u.muConvert(this)
+         this.visited_set.clear()
          str += u.show(this) + '\n'
       }
       return str
