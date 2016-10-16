@@ -77,10 +77,10 @@ AST.TypeVariable.prototype.generate = function(indent) {
 }
 
 AST.TypeConstructor.prototype.generate = function(indent) {
-    var s = this.constructor
+    let s = this.constructor
     if (this.params.length > 0) {
         s += '<'
-        for (var i = 0; i < this.params.length; ++i) {
+        for (let i = 0; i < this.params.length; ++i) {
             s += this.params[i].find().generate()
             if (i + 1 < this.params.length) {
                 s += ', '
