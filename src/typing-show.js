@@ -52,15 +52,13 @@ function id_to_name(x) {
    
 
 AST.TypeVariable.prototype.show = function() {
-   return this.name + this.id
-   /*let v = tvar_map.get(this.id)
+   //return this.name + this.id
+   let v = tvar_map.get(this)
    if (v === undefined) {
-      v = id_to_name(vid)
-      tvar_map.set(this.id, vid++)
-      return v
-   } else {
-      return id_to_name(v)
-   }*/
+      v = vid
+      tvar_map.set(this, vid++)
+   }
+   return id_to_name(v)
 }
 
 AST.TypeConstructor.prototype.show = function() {

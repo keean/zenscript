@@ -66,7 +66,7 @@ function unify(a, b) {
 }
 
 return {
-   unify: unify,
+   types: unify,
 
    mgu(a, b) {
       const tyvars = new Set()

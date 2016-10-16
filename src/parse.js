@@ -3,6 +3,9 @@ module.exports = (() => {
 
 var P = require('parsimmon')
 var AST = require('../src/ast.js')
+var unify = require('../src/unification.js')
+var show = require('../src/typing-show.js')
+var inst = require('../src/typing-instantiate.js')
 
 //------------------------------------------------------------------------
 // Indentation Parser
@@ -66,27 +69,34 @@ var comma = P.string(',').skip(exp_space)
 
 const var_map = new Map()
 
-const typeVariable = P.regexp(/[A-Z]+/).map((n) => {
-   const id = var_map.get(n)
-   if (id !== undefined) {
-      return new AST.TypeVariable(n, id)
-   } else {
-      const tyvar = new AST.TypeVariable(n)
-      var_map.set(n, tyvar.id)
-      return tyvar
+const typeVariable = P.regexp(/[A-Z]+/).skip(exp_space).map((n) => {
+   let t = var_map.get(n)
+   if (t === undefined) {
+      t = new AST.TypeVariable(n)
+      var_map.set(n, t)
    }   
+   return t
 })
 
 let typeListLazy
 const typeList = P.lazy(() => {return typeListLazy})
 
 const typeConstructor = P.seqMap(
-   P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/),
-   (P.string('<').then(typeList).skip(P.string('>'))).or(P.succeed([])),
+   P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/).skip(exp_space),
+   (P.string('<').then(exp_space).then(typeList).skip(exp_space).skip(P.string('>')).skip(exp_space)).or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
 
-const typeSubExpression = typeConstructor.or(typeVariable)
+const typeSubExpression = P.seqMap(
+   typeConstructor.or(typeVariable),
+   (P.string('as').then(exp_space).then(typeVariable).skip(exp_space)).or(P.succeed()),
+   (texp, mu) => {
+      if (mu !== undefined) {
+         unify.types(texp, mu)
+      }
+      return texp
+   }
+)
 
 typeListLazy = P.sepBy(typeSubExpression, comma)
 

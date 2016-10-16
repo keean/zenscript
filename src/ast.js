@@ -147,11 +147,11 @@ module.exports = (() => {
       },
 
       TypeVariable : class extends Type {
-         constructor(n, id) {
+         constructor(n) {
             super()
             this.tag = 'type_variable'
             this.name = n
-            this.id = (id === undefined) ? tyvar_id++ : id
+            this.id = tyvar_id++
          }
 
       }
