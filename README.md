@@ -1,5 +1,5 @@
 # zenscript
-A trait based language that compiles to JavaScript
+A typeclass based language that compiles to JavaScript
 
 
 Starting with a program in a file ending '.zs':
