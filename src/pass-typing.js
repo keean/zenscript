@@ -7,6 +7,7 @@ const inst = require('../src/typing-instantiate.js')
 const unify = require('../src/unification.js')
 
 const IntegerType = new AST.TypeConstructor('Int', [])
+const UnitType = new AST.TypeConstructor('Int', [])
 
 AST.LiteralInt.prototype.pass_typing = function() {
    this.typing = new AST.Typing(new MultiMap(), IntegerType)
@@ -58,18 +59,20 @@ AST.Fn.prototype.pass_typing = function() {
       b.context.erase(r)
       ps.params.push(a)
    }
-   this.typing = new AST.TypeConstructor('Arrow', [ps, b.type])
+   this.typing = new AST.Typing(b.context, new AST.TypeConstructor('Arrow', [ps, b.type]))
    return this.typing
 }
 
 AST.Declaration.prototype.pass_typing = function() {
    this.expression.pass_typing()
+   this.typing = new AST.Typing(this.expression.context, UnitType)
    return this.typing
   
 }
 
 AST.Assignment.prototype.pass_typing = function() {
    this.expression.pass_typing()
+   this.typing = new AST.Typing(this.expression.context, UnitType)
    return this.typing
 }
 
@@ -83,7 +86,7 @@ AST.Block.prototype.pass_typing = function() {
    for(var i = 0; i < this.statements.length; ++i) {
       this.statements[i].pass_typing()
    }
-   this.typeing = this.statements[this.statements.length - 1].typing
+   this.typing = this.statements[this.statements.length - 1].typing
    return this.typing
 }
 
