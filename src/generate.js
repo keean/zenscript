@@ -35,8 +35,9 @@ AST.Application.prototype.generate = function(indent) {
 }
 
 AST.Fn.prototype.generate = function(indent) {
-    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
-        this.body.generate(indent + 3) + spaces(indent) + '}'
+   return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
+      this.body.generate(indent + 3) + spaces(indent) + '}' +
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Declaration.prototype.generate = function(indent) {

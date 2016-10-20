@@ -48,15 +48,17 @@ AST.Application.prototype.pass_typing = function() {
 
 AST.Fn.prototype.pass_typing = function() {
    const b = inst(this.body.pass_typing())
-   const a = new AST.TypeVariable()
+   const ps = new AST.TypeConstructor('Product', new Array())
    for (const r of this.args) {
-      const ts = b.context.get(r)
+      const a = new AST.TypeVariable()
+      const ts = b.context.get(r) || []
       for (const t of ts) {
-         unify(a, t)
+         unify.types(a, t)
       }
       b.context.erase(r)
+      ps.params.push(a)
    }
-   this.typing = new AST.TypeConstructor('Arrow', [a, b.type])
+   this.typing = new AST.TypeConstructor('Arrow', [ps, b.type])
    return this.typing
 }
 

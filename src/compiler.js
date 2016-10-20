@@ -43,6 +43,8 @@ const compile = (() => {
             return console.log(ast.value)
          }  
 
+         //console.log(JSON.stringify(ast))
+
          //----------------------------------------------------------------
          // Compiler Passes
          const pass_start = new Date().getTime()

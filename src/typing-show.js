@@ -112,6 +112,9 @@ return class {
    }
 
    typing(t) {
+      this.vid = 0
+      this.mu_map.clear()
+      this.tvar_map.clear()
       this.visited_set.clear()
       t.muConvert(this)     
       this.visited_set.clear()

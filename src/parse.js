@@ -155,12 +155,12 @@ const literal_function = P.seqMap(
 
 // application
 const fn_app = P.seqMap(
-   identifier,
+   identifier.or(P.succeed('')).map((x) => new AST.Variable(x)),
    P.string('(').then(exp_space).then(P.lazy(() => {
       return expression_list
    })).skip(P.string(')')),
-   (name, exps) => {
-      return new AST.Application(new AST.Variable(name), new AST.LiteralTuple(exps))
+   (fexp, exps) => {
+      return new AST.Application(fexp, new AST.LiteralTuple(exps))
    }
 )
 
@@ -226,12 +226,12 @@ block_lazy = P.succeed({}).chain(() => {
 // Program 
 
 // top_level = {NL}, {INDENT==0, statement, {NL}}
-const top_level = newline.many().then((Indent.absolute(0).map((i) => Indent.set(i)).
+const topLevel = newline.many().then((Indent.absolute(0).map((i) => Indent.set(i)).
    then(statement).skip(newline.many())).many()).map((blk) => {return new AST.Block(blk)})
 
 return {
    program(s) {
-      return top_level.parse(s)
+      return topLevel.parse(s)
    },
 
    type(s) {
