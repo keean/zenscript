@@ -79,27 +79,38 @@ AST.TypeConstructor.prototype.show = function(cxt) {
    }
 }
 
-AST.Typing.prototype.show = function(cxt) {
+function show_type_dict(cxt, dict) {
    let str = ''
-   const keys = this.context.keys()
-   if (keys.length > 0) {
-      str = '{'
-      for (let i = 0; i < keys.length; ++i) {
-         str += keys[i] + ': ' 
-         const vals = this.context[keys[i]]
-         for (let j = 0; j < vals.length; ++j) {
-            str += vals[j].find().show(cxt)
-            if (i + 1 < vals.length) {
-               str += ' /\\ '
-            }
-         }
-         if (i + 1 < keys.length) {
-            str += ', '
+   const keys = dict.keys()
+   for (let i = 0; i < keys.length; ++i) {
+      str += keys[i] + ': '
+      const vals = dict[keys[i]]
+      for (let j = 0; j < vals.length; ++j) {
+         str += vals[j].find().show(cxt)
+         if (i + 1 < vals.length) {
+            str += ' /\\ '
          }
       }
-      str += '} '
+      if (i + 1 < keys.length) {
+         str += ', '
+      }
+   }
+   return str
+}
+
+AST.Typing.prototype.show = function(cxt) {
+   const cxt_str = show_type_dict(cxt, this.context)
+   const eff_str = show_type_dict(cxt, this.effects)
+
+   let str = ''
+   if (cxt_str.length > 0) {
+      str += '{' + cxt_str + '} '
+   }
+   if (eff_str.length > 0) {
+      str += '[' + eff_str + '] '
    }
    str += this.type.find().show(cxt)
+
    return str
 }
 

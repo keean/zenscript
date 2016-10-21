@@ -37,11 +37,12 @@ AST.Application.prototype.generate = function(indent) {
 AST.Fn.prototype.generate = function(indent) {
    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
       this.body.generate(indent + 3) + spaces(indent) + '}' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 AST.Declaration.prototype.generate = function(indent) {
-    return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + ';\n'
+    return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + '; ' +
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 AST.Assignment.prototype.generate = function(indent) {
@@ -53,7 +54,8 @@ AST.Return.prototype.generate = function(indent) {
 }
 
 AST.Block.prototype.generate = function(indent) {
-    return this.statements.map((x) => x.generate(indent)).join('')
+    return this.statements.map((x) => x.generate(indent)).join('') + '\n' +
+      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 //----------------------------------------------------------------------------
@@ -93,7 +95,7 @@ AST.TypeConstructor.prototype.generate = function(indent) {
 }
 
 return (ast) => {
-   return ast.generate(0)
+   return ast.generate(0) + '\n'
 }
 
 })()

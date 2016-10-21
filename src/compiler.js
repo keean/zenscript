@@ -61,7 +61,7 @@ const compile = (() => {
          //----------------------------------------------------------------
          // Generate Target
          const write_start = new Date().getTime()
-         fs.writeFile(dest, ast.value.generate(0), (err) => {
+         fs.writeFile(dest, generate(ast.value), (err) => {
             if (err) {
                return console.log(err)
             }

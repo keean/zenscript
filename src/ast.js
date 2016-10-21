@@ -1,5 +1,7 @@
 module.exports = (() => {
    "use strict"
+   const MultiMap = require('../src/multimap.js')
+
    let tyvar_id = 0
 
    //-------------------------------------------------------------------------
@@ -130,9 +132,13 @@ module.exports = (() => {
       // Types
 
       Typing : class {
-         constructor(ts, t) {
+         constructor(cxt, t, eff) {
+            if (eff === undefined) {
+               eff = new MultiMap
+            }
             this.tag = 'typing'
-            this.context = ts
+            this.context = cxt
+            this.effects = eff
             this.type = t
          }
       },

@@ -3,6 +3,7 @@ module.exports = (() => {
 
 const AST = require('../src/ast.js')
 const getVariables = require('../src/typing-getvars.js')
+const Show = require('../src/typing-show.js')
 
 //----------------------------------------------------------------------------
 // The unification algorithm needs to derefence each node using 'find' to make
@@ -57,6 +58,8 @@ function unify(a, b) {
       const v = t.find()
 
       if (u !== v) {
+         const show = new Show
+         console.log(show.type(u) + ' [u] ' + show.type(v))
          u.unify(v)
       }
    }
