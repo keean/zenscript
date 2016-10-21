@@ -155,7 +155,7 @@ const literal_function = P.seqMap(
 
 // application
 const fn_app = P.seqMap(
-   identifier.or(P.succeed('')).map((x) => new AST.Variable(x)),
+   identifier.map((x) => new AST.Variable(x)),
    P.string('(').then(exp_space).then(P.lazy(() => {
       return expression_list
    })).skip(P.string(')')),

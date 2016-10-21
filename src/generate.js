@@ -11,51 +11,52 @@ function spaces(i) {
 
 AST.LiteralInt.prototype.generate = function(indent) {
    return this.value.toString() +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*INT: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
    return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*ARY: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.LiteralTuple.prototype.generate = function(indent) {
    return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*TPL: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Variable.prototype.generate = function(indent) {
    return this.name +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*VAR: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Application.prototype.generate = function(indent) {
    return this.fun.generate() + this.arg.generate() +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*APP: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.Fn.prototype.generate = function(indent) {
    return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
       this.body.generate(indent + 3) + spaces(indent) + '}' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
+      ((this.typing) ? ('/*FUN: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 AST.Declaration.prototype.generate = function(indent) {
-    return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + '; ' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
+   return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + '; ' +
+      ((this.typing) ? ('/*DCL: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 AST.Assignment.prototype.generate = function(indent) {
-    return spaces(indent) + this.name + ' = ' + this.expression.generate(indent) + ';\n'
+   return spaces(indent) + this.name + ' = ' + this.expression.generate(indent) + ';\n'
 }
 
 AST.Return.prototype.generate = function(indent) {
-    return spaces(indent) + 'return ' + this.expression.generate(indent) + ';\n'
+   return spaces(indent) + 'return ' + this.expression.generate(indent) + '; ' +
+      ((this.typing) ? ('/*RTN: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 AST.Block.prototype.generate = function(indent) {
-    return this.statements.map((x) => x.generate(indent)).join('') + '\n' +
-      ((this.typing) ? ('/*' + show.typing(this.typing) + '*/ ') : '') + '\n'
+   return this.statements.map((x) => x.generate(indent)).join('') + '\n' +
+      ((this.typing) ? ('/*BLK: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
 }
 
 //----------------------------------------------------------------------------

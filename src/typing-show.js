@@ -87,7 +87,7 @@ function show_type_dict(cxt, dict) {
       const vals = dict[keys[i]]
       for (let j = 0; j < vals.length; ++j) {
          str += vals[j].find().show(cxt)
-         if (i + 1 < vals.length) {
+         if (j + 1 < vals.length) {
             str += ' /\\ '
          }
       }

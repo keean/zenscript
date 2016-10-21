@@ -71,6 +71,7 @@ AST.Declaration.prototype.pass_typing = function() {
    const b = inst(this.expression.pass_typing())
    this.typing = new AST.Typing(b.context, UnitType)
    this.typing.effects.set(this.name, b.type)
+   console.log('NAME: ' + this.name)
    const show = new Show
    return this.typing
   
@@ -90,15 +91,17 @@ AST.Return.prototype.pass_typing = function() {
 
 AST.Block.prototype.pass_typing = function() {
    const block_typing = new AST.Typing(new MultiMap(), UnitType)
+   const show = new Show
    for(var i = 0; i < this.statements.length; ++i) {
       const statement_typing = this.statements[i].pass_typing()
+      console.log("STATEMENT: " + show.typing(statement_typing))
       block_typing.context.union(statement_typing.context)
       block_typing.effects.union(statement_typing.effects)
       block_typing.type = statement_typing.type
    }
+   console.log("BLOCK: " + show.typing(block_typing))
    this.typing = inst(block_typing)
-   const show = new Show
-   for (const key of this.typing.context.keys()) {
+   for (const key of this.typing.effects.keys()) {
       const use = this.typing.context.get(key)
       const dcl = this.typing.effects.get(key)
       if (dcl !== undefined) { // *FIXME* needs to cope with overloading
@@ -109,8 +112,9 @@ AST.Block.prototype.pass_typing = function() {
          for (const v of dcl) {
             unify.types(t, v)
          }
-         this.typing.effects.erase(key)
       }
+      this.typing.context.erase(key)
+      this.typing.effects.erase(key)
    }
    return this.typing
 }
