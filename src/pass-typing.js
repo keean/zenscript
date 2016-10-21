@@ -38,22 +38,18 @@ AST.LiteralArray.prototype.pass_typing = function() {
 }
 
 AST.Application.prototype.pass_typing = function() {
-   console.log('APPLY')
    const show = new Show()
    const f = inst(this.fun.pass_typing())
-   console.log('F-TYPE: ' + show.typing(this.fun.typing))
    const a = inst(this.arg.pass_typing())
    f.context.union(a.context)
    const t = new AST.Typing(f.context, new AST.TypeVariable('APP'))
    const u = new AST.TypeConstructor('Arrow', [a.type, t.type])
-   console.log('UNIFY: (' + show.type(f.type) + ') (' + show.type(u) + ')')
    unify.types(f.type, u)
    this.typing = t
    return this.typing
 }
 
 AST.Fn.prototype.pass_typing = function() {
-   console.log('ABSTRACT')
    const b = inst(this.body.pass_typing())
    const ps = new AST.TypeConstructor('Product', new Array())
    for (const r of this.args) {
@@ -68,7 +64,6 @@ AST.Fn.prototype.pass_typing = function() {
 
    this.typing = new AST.Typing(b.context, new AST.TypeConstructor('Arrow', [ps, b.type]))
    const show = new Show
-   console.log('A_TYPE: ' + show.typing(this.typing))
    return this.typing
 }
 
@@ -77,7 +72,6 @@ AST.Declaration.prototype.pass_typing = function() {
    this.typing = new AST.Typing(b.context, UnitType)
    this.typing.effects.set(this.name, b.type)
    const show = new Show
-   console.log('DECL: ' + show.typing(this.typing))
    return this.typing
   
 }
@@ -107,14 +101,16 @@ AST.Block.prototype.pass_typing = function() {
    for (const key of this.typing.context.keys()) {
       const use = this.typing.context.get(key)
       const dcl = this.typing.effects.get(key)
-      const t = new AST.TypeVariable
-      for (const u of use) {
-         unify.types(t, u)
+      if (dcl !== undefined) { // *FIXME* needs to cope with overloading
+         const t = new AST.TypeVariable
+         for (const u of use) {
+            unify.types(t, u)
+         }
+         for (const v of dcl) {
+            unify.types(t, v)
+         }
+         this.typing.effects.erase(key)
       }
-      for (const v of dcl) {
-         unify.types(t, v)
-      }
-      this.typing.effects.erase(key)
    }
    return this.typing
 }
