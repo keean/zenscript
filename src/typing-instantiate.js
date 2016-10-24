@@ -41,11 +41,7 @@ AST.Typing.prototype.instantiate = function() {
    this.context.forEach((k, v) => {
       context.set(k, v.find().instantiate())
    })
-   let effects = new MultiMap()
-   this.effects.forEach((k, v) => {
-      effects.set(k, v.find().instantiate())
-   })
-   return new AST.Typing(context, this.type.find().instantiate(), effects)
+   return new AST.Typing(this.type.find().instantiate(), context, this.defined)
 }
 
 return (ast) => {

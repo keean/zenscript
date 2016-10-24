@@ -49,9 +49,9 @@ const compile = (() => {
          // Compiler Passes
          const pass_start = new Date().getTime()
 
-         ast.value.pass_typing()
+         pass_typing(ast.value)
 
-         write_ast(debug, ast) // write AST after typing
+         //write_ast(debug, ast) // write AST after typing
 
          ast.value.pass_tuple_convert()
 

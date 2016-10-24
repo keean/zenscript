@@ -132,13 +132,16 @@ module.exports = (() => {
       // Types
 
       Typing : class {
-         constructor(cxt, t, eff) {
-            if (eff === undefined) {
-               eff = new MultiMap
+         constructor(t, cxt, dfn) {
+            if (cxt === undefined) {
+               cxt = new MultiMap
+            }
+            if (dfn === undefined) {
+               dfn = new Map
             }
             this.tag = 'typing'
             this.context = cxt
-            this.effects = eff
+            this.defined = dfn
             this.type = t
          }
       },

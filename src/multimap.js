@@ -24,6 +24,12 @@ return class {
       delete this[key]
    }
 
+   clear() {
+      for (const key of Object.keys(this)) {
+         delete this[key]
+      }
+   }
+
    union(that) {
       for (const key of Object.keys(that)) {
          if (this[key] === undefined) {
@@ -37,6 +43,16 @@ return class {
 
    keys() {
       return Object.keys(this)
+   }
+
+   values() {
+      const x = []
+      for (const key of Object.keys(this)) {
+         for (const v of this[key]) {
+            x.push(v)
+         }
+      }
+      return x
    }
 
    forEach(f) {

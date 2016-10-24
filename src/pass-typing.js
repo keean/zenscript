@@ -1,4 +1,4 @@
-(() => {
+module.exports = (() => {
 "use strict"
 
 const AST = require('../src/ast.js')
@@ -10,50 +10,63 @@ const Show = require('../src/typing-show.js')
 const IntegerType = new AST.TypeConstructor('Int', [])
 const UnitType = new AST.TypeConstructor('Unit', [])
 
-AST.LiteralInt.prototype.pass_typing = function() {
-   this.typing = new AST.Typing(new MultiMap(), IntegerType)
+function deepFreeze(obj) {
+   Object.freeze(obj)
+   for (const k of Object.keys(obj)) {
+      const p = obj[k]
+      if (typeof p == 'object' && p !== null) {
+         deepFreeze(p)
+      }
+   }
+}
+
+AST.LiteralInt.prototype.infer = function() {
+   this.typing = new AST.Typing(IntegerType)
+   deepFreeze(this.typing)
    return this.typing
 }
 
-AST.Variable.prototype.pass_typing = function() {
-   this.typing = new AST.Typing(new MultiMap(), new AST.TypeVariable('VAR'))
+AST.Variable.prototype.infer = function() {
+   this.typing = new AST.Typing(new AST.TypeVariable('VAR'))
    this.typing.context.set(this.name, this.typing.type)
+   deepFreeze(this.typing)
    return this.typing
 }
 
-AST.LiteralTuple.prototype.pass_typing = function() {
-   const context = new MultiMap()
+AST.LiteralTuple.prototype.infer = function() {
+   const context = new MultiMap
    const type = new AST.TypeConstructor('Product', new Array(this.expressions.length))
    for (let i = 0; i < this.expressions.length; ++i) {
-       const typing = this.expressions[i].pass_typing()
+       const typing = this.expressions[i].infer()
        context.union(typing.context)
        type.params[i] = typing.type
    }
-   this.typing = new AST.Typing(context, type)
+   this.typing = new AST.Typing(type, context)
+   deepFreeze(this.typing)
    return this.typing
 }
 
-AST.LiteralArray.prototype.pass_typing = function() {
+AST.LiteralArray.prototype.infer = function() {
    throw 'array literal not supported in source language'
 }
 
-AST.Application.prototype.pass_typing = function() {
-   const show = new Show()
-   const f = inst(this.fun.pass_typing())
-   const a = inst(this.arg.pass_typing())
+AST.Application.prototype.infer = function() {
+   const f = inst(this.fun.infer())
+   const a = inst(this.arg.infer())
    f.context.union(a.context)
-   const t = new AST.Typing(f.context, new AST.TypeVariable('APP'))
+   const t = new AST.Typing(new AST.TypeVariable, f.context)
    const u = new AST.TypeConstructor('Arrow', [a.type, t.type])
    unify.types(f.type, u)
    this.typing = t
+   deepFreeze(this.typing)
    return this.typing
 }
 
-AST.Fn.prototype.pass_typing = function() {
-   const b = inst(this.body.pass_typing())
+AST.Fn.prototype.infer = function() {
+   const b = inst(this.body.infer())
    const ps = new AST.TypeConstructor('Product', new Array())
    for (const r of this.args) {
-      const a = new AST.TypeVariable('FUN')
+      const a = new AST.TypeVariable
       const ts = b.context.get(r) || []
       for (const t of ts) {
          unify.types(a, t)
@@ -62,61 +75,82 @@ AST.Fn.prototype.pass_typing = function() {
       ps.params.push(a)
    }
 
-   this.typing = new AST.Typing(b.context, new AST.TypeConstructor('Arrow', [ps, b.type]))
-   const show = new Show
+   this.typing = new AST.Typing(new AST.TypeConstructor('Arrow', [ps, b.type]), b.context)
+   deepFreeze(this.typing)
    return this.typing
 }
 
-AST.Declaration.prototype.pass_typing = function() {
-   const b = inst(this.expression.pass_typing())
-   this.typing = new AST.Typing(b.context, UnitType)
-   this.typing.effects.set(this.name, b.type)
-   console.log('NAME: ' + this.name)
+AST.Declaration.prototype.infer = function() {
+   this.typing = new AST.Typing(UnitType)
+   this.typing.defined.set(this.name, this.expression.infer())
    const show = new Show
+   deepFreeze(this.typing)
    return this.typing
   
 }
 
-AST.Assignment.prototype.pass_typing = function() {
-   this.expression.pass_typing()
+AST.Assignment.prototype.infer = function() {
+   throw 'assignment not implemented'
+   /*this.expression.typing()
    this.typing = new AST.Typing(this.expression.context, UnitType)
+   this.typing = new AST.Typing(new Map, UnitType)
+   deepFreeze(this.typing)
+   return this.typing*/
+}
+
+AST.Return.prototype.infer = function() {
+   this.typing = this.expression.infer()
    return this.typing
 }
 
-AST.Return.prototype.pass_typing = function() {
-   this.expression.pass_typing()
-   this.typing = this.expression.typing
-   return this.typing
-}
-
-AST.Block.prototype.pass_typing = function() {
-   const block_typing = new AST.Typing(new MultiMap(), UnitType)
+function resolveReferences(context, defined) {
    const show = new Show
-   for(var i = 0; i < this.statements.length; ++i) {
-      const statement_typing = this.statements[i].pass_typing()
-      console.log("STATEMENT: " + show.typing(statement_typing))
-      block_typing.context.union(statement_typing.context)
-      block_typing.effects.union(statement_typing.effects)
-      block_typing.type = statement_typing.type
-   }
-   console.log("BLOCK: " + show.typing(block_typing))
-   this.typing = inst(block_typing)
-   for (const key of this.typing.effects.keys()) {
-      const use = this.typing.context.get(key)
-      const dcl = this.typing.effects.get(key)
-      if (dcl !== undefined) { // *FIXME* needs to cope with overloading
-         const t = new AST.TypeVariable
-         for (const u of use) {
-            unify.types(t, u)
+   let outcxt = new MultiMap
+   for (const key of context.keys()) {  
+      const p = defined.get(key)
+      if (p !== undefined) {
+         const m = inst(p)
+         for (const c of context.get(key)) {
+            unify.types(m.type, c)
          }
-         for (const v of dcl) {
-            unify.types(t, v)
+         outcxt.union(resolveReferences(m.context, defined))
+      } else {
+         for (const c of context.get(key)) {
+            outcxt.set(key, c)
          }
       }
-      this.typing.context.erase(key)
-      this.typing.effects.erase(key)
    }
+
+   return outcxt
+}
+
+
+AST.Block.prototype.infer = function() {
+   const context = new MultiMap
+   const defined = new Map()
+   let type = UnitType
+   const show = new Show
+
+   for(var i = 0; i < this.statements.length; ++i) {
+
+      const statement_typing = inst(this.statements[i].infer())
+
+      context.union(resolveReferences(statement_typing.context, defined))
+
+      for (const [k, v] of statement_typing.defined.entries()) {
+         defined.set(k, v)
+      }
+
+      type = statement_typing.type
+   }
+
+   this.typing = new AST.Typing(type, context, defined)
+   deepFreeze(this.typing)
    return this.typing
+}
+
+return (ast) => {
+   return ast.infer()
 }
 
 })()

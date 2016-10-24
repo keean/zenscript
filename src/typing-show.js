@@ -22,10 +22,15 @@ AST.TypeConstructor.prototype.muConvert = function(cxt) {
 }
       
 AST.Typing.prototype.muConvert = function(cxt) {
-   for (let i = 0; i < this.context.length; ++i) {
-      this.contect[i].find().muConvert(cxt)
+   for (const x of this.context.keys()) {
+      for (const y of this.context[x]) {
+         y.find().muConvert(cxt)
+      }
    }
    this.type.find().muConvert(cxt)
+   //for (const x of this.defined.values()) {
+   //   x.muConvert(cxt)
+   //}
 }
 
 //----------------------------------------------------------------------------
@@ -98,19 +103,34 @@ function show_type_dict(cxt, dict) {
    return str
 }
 
+function show_typing_dict(cxt, dict) {
+   if (dict !== undefined) {
+      let str = ''
+      const keys = [...dict.keys()]
+      for (let i = 0; i < keys.length; ++i) {
+         str += keys[i] + ': ' + dict.get(keys[i]).show(cxt)
+         if (i + 1 < keys.length) {
+            str += ', '
+         }
+      }
+      return str
+   }
+   return ''
+}
+
 AST.Typing.prototype.show = function(cxt) {
    const cxt_str = show_type_dict(cxt, this.context)
-   const eff_str = show_type_dict(cxt, this.effects)
+   const def_str = show_typing_dict(cxt, this.defined)
 
    let str = ''
    if (cxt_str.length > 0) {
       str += '{' + cxt_str + '} '
    }
-   if (eff_str.length > 0) {
-      str += '[' + eff_str + '] '
-   }
    str += this.type.find().show(cxt)
-
+   if (def_str.length > 0) {
+      str += ' [' + def_str + ']'
+   }
+   
    return str
 }
 
@@ -122,6 +142,34 @@ return class {
       this.vid = 0
    }
 
+   context(t) {
+      this.vid = 0
+      this.mu_map.clear()
+      this.tvar_map.clear()
+      this.visited_set.clear()
+      for (const x of t.values()) {
+         x.muConvert(this)
+      }
+      this.visited_set.clear()
+      const s = show_type_dict(this, t)
+      this.visited_set.clear()
+      return s
+   }
+
+   defined(t) {
+      this.vid = 0
+      this.mu_map.clear()
+      this.tvar_map.clear()
+      this.visited_set.clear()
+      for (const x of t.values()) {
+         x.muConvert(this)     
+      }
+      this.visited_set.clear()
+      const s = show_typing_dict(this, t)
+      this.visited_set.clear()
+      return s
+   }
+
    typing(t) {
       this.vid = 0
       this.mu_map.clear()
@@ -129,7 +177,9 @@ return class {
       this.visited_set.clear()
       t.muConvert(this)     
       this.visited_set.clear()
-      return t.show(this)
+      const s = t.show(this)
+      this.visited_set.clear()
+      return s
    }
 
    type(t) {
@@ -137,7 +187,9 @@ return class {
       this.visited_set.clear()
       u.muConvert(this)
       this.visited_set.clear()
-      return u.show(this)
+      const s = u.show(this)
+      this.visited_set.clear()
+      return s
    }
    
    vars(vs) {
@@ -152,6 +204,7 @@ return class {
          u.muConvert(this)
          this.visited_set.clear()
          str += u.show(this) + '\n'
+         this.visited_set.clear()
       }
       return str
    }

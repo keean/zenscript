@@ -58,8 +58,6 @@ function unify(a, b) {
       const v = t.find()
 
       if (u !== v) {
-         const show = new Show
-         console.log(show.type(u) + ' [u] ' + show.type(v))
          u.unify(v)
       }
    }
