@@ -103,9 +103,7 @@ AST.Return.prototype.infer = function() {
    return this.typing
 }
 
-function resolveReferences(context, defined) {
-   const show = new Show
-   let outcxt = new MultiMap
+function resolveReferences(context, defined, outcxt) {
    for (const key of context.keys()) {  
       const p = defined.get(key)
       if (p !== undefined) {
@@ -113,15 +111,13 @@ function resolveReferences(context, defined) {
          for (const c of context.get(key)) {
             unify.types(m.type, c)
          }
-         outcxt.union(resolveReferences(m.context, defined))
+         resolveReferences(m.context, defined, outcxt)
       } else {
          for (const c of context.get(key)) {
             outcxt.set(key, c)
          }
       }
    }
-
-   return outcxt
 }
 
 
@@ -129,18 +125,13 @@ AST.Block.prototype.infer = function() {
    const context = new MultiMap
    const defined = new Map()
    let type = UnitType
-   const show = new Show
 
-   for(var i = 0; i < this.statements.length; ++i) {
-
+   for(let i = 0; i < this.statements.length; ++i) {
       const statement_typing = inst(this.statements[i].infer())
-
-      context.union(resolveReferences(statement_typing.context, defined))
-
+      resolveReferences(statement_typing.context, defined, context)
       for (const [k, v] of statement_typing.defined.entries()) {
          defined.set(k, v)
       }
-
       type = statement_typing.type
    }
 
