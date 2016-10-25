@@ -5,6 +5,8 @@ const AST = require('../src/ast.js')
 const getVariables = require('../src/typing-getvars.js')
 const Show = require('../src/typing-show.js')
 
+const show = new Show
+
 //----------------------------------------------------------------------------
 // The unification algorithm needs to derefence each node using 'find' to make
 // sure we are using the representative type from each equivalence class.
@@ -63,6 +65,7 @@ function unify(a, b) {
    }
 
    todo.length = 0
+
    return unifies
 }
 

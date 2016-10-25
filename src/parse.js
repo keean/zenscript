@@ -91,7 +91,9 @@ const typeSubExpression = P.seqMap(
    (P.string('as').then(exp_space).then(typeVariable).skip(exp_space)).or(P.succeed()),
    (texp, mu) => {
       if (mu !== undefined) {
-         unify.types(texp, mu)
+         if (!unify.types(texp, mu)) {
+            throw 'unification error when parsing recursive type'
+         }
       }
       return texp
    }
@@ -127,6 +129,9 @@ const expression = P.lazy(() => {return expression_lazy})
 let block_lazy
 const block = P.lazy(() => {return block_lazy})
 
+let sub_expression_lazy
+const sub_expression = P.lazy(() => {return sub_expression_lazy})
+
 //------------------------------------------------------------------------
 // Types
 
@@ -139,6 +144,16 @@ const bracket_close = P.string(')').skip(exp_space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
 const identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
+
+// ID
+const variable = identifier.map((id) => {
+   return new AST.Variable(id)
+})
+
+// INT
+const int_lit = P.regexp(/[0-9]+/).map((i) => {
+   return new AST.LiteralInt(parseInt(i))
+})
 
 // arg_list = identifier, {comma, identifier}
 const arg_list = P.sepBy(identifier, comma)
@@ -153,37 +168,46 @@ const literal_function = P.seqMap(
    }
 )
 
-// application
-const fn_app = P.seqMap(
-   identifier.map((x) => new AST.Variable(x)),
-   P.string('(').then(exp_space).then(P.lazy(() => {
-      return expression_list
-   })).skip(P.string(')')),
-   (fexp, exps) => {
-      return new AST.Application(fexp, new AST.LiteralTuple(exps))
+// expression_list = expression, {',', expression}
+expression_list_lazy = P.sepBy(expression, comma) /*P.seqMap(
+   expression.skip(comma),
+   P.sepBy(expression, comma).or(P.succeed([])),
+   (e, es) => {
+      es.unshift(e)
+      return es
    }
-)
-
-// ID
-const variable = identifier.map((id) => {
-   return new AST.Variable(id)
-})
-
-// INT
-const int_lit = P.regexp(/[0-9]+/).map((i) => {
-   return new AST.LiteralInt(parseInt(i))
-})
+)*/
 
 // tuple = '(', expression_list, ')'
 const tuple = bracket_open.then(expression_list).skip(bracket_close).map((exp_list) => {
-   return (exp_list.length === 0) ? new AST.Unit() : new AST.LiteralTuple(exp_list)
+   return new AST.LiteralTuple(exp_list)
 })
 
-// expression = literal_function | application | variable | literal_integer
-expression_lazy = literal_function.or(fn_app).or(tuple).or(variable).or(int_lit).skip(exp_space)
+function application(exp) {
+   return exp.atLeast(1).map((app_list) => {
+      let i = 0
+      let apps = app_list[i++]
+      while (i < app_list.length) {
+         apps = new AST.Application(apps, app_list[i++])
+      }
+      return apps
+   })
+}
 
-// expression_list = expression, {',', expression}
-expression_list_lazy = P.sepBy(expression, comma)
+function in_parenthesis(exp) {
+   return bracket_open.then(exp).skip(bracket_close)
+}
+
+sub_expression_lazy = application(variable.or(int_lit).or(literal_function).or(in_parenthesis(expression)).or(tuple).skip(exp_space))
+expression_lazy = application(
+   variable
+   .or(int_lit)
+   .or(literal_function)
+   .or(in_parenthesis(literal_function))
+   .or(tuple)
+   .or(in_parenthesis(expression))
+   .skip(exp_space)
+)
 
 //------------------------------------------------------------------------
 // Statements

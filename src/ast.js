@@ -3,6 +3,16 @@ module.exports = (() => {
    const MultiMap = require('../src/multimap.js')
 
    let tyvar_id = 0
+   let term_id = 0
+
+   //-------------------------------------------------------------------------
+   // Base class for term nodes provides serial id.
+ 
+   class Term {
+      constructor() {
+         this.id = term_id++
+      }
+   }
 
    //-------------------------------------------------------------------------
    // Base class for type nodes provides union-find methods for finding the
@@ -54,44 +64,50 @@ module.exports = (() => {
 
       // Values
      
-      LiteralInt : class {
+      LiteralInt : class extends Term {
          constructor(v) {
+            super()
             this.tag = 'literal_int'
             this.value = v
          }
       },
 
-      LiteralArray : class {
+      LiteralArray : class extends Term {
          constructor(l) {
+            super()
             this.tag = 'literal_array'
             this.expressions = l
          }
       },
 
-      LiteralTuple : class {
+      LiteralTuple : class extends Term {
          constructor(l) {
+            super()
             this.tag = 'literal_tuple'
             this.expressions = l
          }
       },
 
-      Variable : class {
+      Variable : class extends Term {
          constructor(n) {
+            super()
             this.tag = 'variable'
             this.name = n
          }
       },
 
-      Application : class {
+      Application : class extends Term {
          constructor(f, a) {
+            super()
             this.tag = 'application'
             this.fun = f
             this.arg = a
          }
       },
 
-      Fn : class {
+      Fn : class extends Term {
          constructor(n, a, e) {
+            super()
             this.tag = 'function'
             this.name = n
             this.args = a
@@ -99,31 +115,35 @@ module.exports = (() => {
          }
       },
 
-      Declaration : class {
+      Declaration : class extends Term {
          constructor(n, e) {
+            super()
             this.tag = 'declaration'
             this.name = n
             this.expression = e
          }
       },
 
-      Assignment : class {
+      Assignment : class extends Term {
          constructor(n, e) {
+            super()
             this.tag = 'assignment'
             this.name = n
             this.expression = e   
          }
       },
 
-      Return : class {
+      Return : class extends Term {
          constructor(e) {
+            super()
             this.tag = 'return'
             this.expression = e
          }
       },
 
-      Block : class {
+      Block : class extends Term {
          constructor(b) {
+            super()
             this.tag = 'block'
             this.statements = b
          }

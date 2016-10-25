@@ -56,8 +56,13 @@ AST.Application.prototype.infer = function() {
    f.context.union(a.context)
    const t = new AST.Typing(new AST.TypeVariable, f.context)
    const u = new AST.TypeConstructor('Arrow', [a.type, t.type])
-   unify.types(f.type, u)
-   this.typing = t
+   if (unify.types(f.type, u)) {
+      this.typing = t
+   } else {
+      const g = this.fun.typing.type
+      const b = new AST.TypeConstructor('Arrow', [this.arg.typing.type, new AST.TypeVariable])
+      this.typing = new AST.Typing(new AST.TypeConstructor('!Fail!', [g, b]))
+   }
    deepFreeze(this.typing)
    return this.typing
 }
@@ -69,7 +74,9 @@ AST.Fn.prototype.infer = function() {
       const a = new AST.TypeVariable
       const ts = b.context.get(r) || []
       for (const t of ts) {
-         unify.types(a, t)
+         if (!unify.types(a, t)) {
+            throw 'unification failed'
+         }
       }
       b.context.erase(r)
       ps.params.push(a)
@@ -105,13 +112,15 @@ AST.Return.prototype.infer = function() {
 
 function resolveReferences(context, defined, outcxt) {
    for (const key of context.keys()) {  
-      const p = defined.get(key)
-      if (p !== undefined) {
-         const m = inst(p)
+      const poly = defined.get(key)
+      if (poly !== undefined) {
+         const mono = inst(poly)
          for (const c of context.get(key)) {
-            unify.types(m.type, c)
+            if (!unify.types(mono.type, c)) {
+               throw 'unification failed'
+            }
          }
-         resolveReferences(m.context, defined, outcxt)
+         resolveReferences(mono.context, defined, outcxt)
       } else {
          for (const c of context.get(key)) {
             outcxt.set(key, c)

@@ -11,7 +11,7 @@ function spaces(i) {
 
 AST.LiteralInt.prototype.generate = function(indent) {
    return this.value.toString() +
-      ((this.typing) ? ('/*INT: ' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing) ? ('/*LIT: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
 AST.LiteralArray.prototype.generate = function(indent) {
