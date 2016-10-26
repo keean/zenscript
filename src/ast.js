@@ -154,10 +154,10 @@ module.exports = (() => {
       Typing : class {
          constructor(t, cxt, dfn) {
             if (cxt === undefined) {
-               cxt = new MultiMap
+               cxt = new MultiMap()
             }
             if (dfn === undefined) {
-               dfn = new Map
+               dfn = new Map()
             }
             this.tag = 'typing'
             this.context = cxt

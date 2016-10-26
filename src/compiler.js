@@ -5,7 +5,7 @@ const compile = (() => {
    const path = require('path')
    const ast = require('./ast.js')
    const parse = require('./parse.js')
-   const generate = require('./generate.js')
+   const Generate = require('./generate.js')
    const pass_typing = require('./pass-typing.js')
    const pass_tuple_convert = require('./pass-tuple-convert.js')
 
@@ -61,7 +61,8 @@ const compile = (() => {
          //----------------------------------------------------------------
          // Generate Target
          const write_start = new Date().getTime()
-         fs.writeFile(dest, generate(ast.value), (err) => {
+         const generate = new Generate(true)
+         fs.writeFile(dest, generate.pretty(ast.value), (err) => {
             if (err) {
                return console.log(err)
             }

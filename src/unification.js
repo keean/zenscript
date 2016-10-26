@@ -3,9 +3,6 @@ module.exports = (() => {
 
 const AST = require('../src/ast.js')
 const getVariables = require('../src/typing-getvars.js')
-const Show = require('../src/typing-show.js')
-
-const show = new Show
 
 //----------------------------------------------------------------------------
 // The unification algorithm needs to derefence each node using 'find' to make

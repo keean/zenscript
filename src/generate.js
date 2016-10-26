@@ -9,61 +9,74 @@ function spaces(i) {
    return ' '.repeat(i)
 }
 
-AST.LiteralInt.prototype.generate = function(indent) {
-   return this.value.toString() +
-      ((this.typing) ? ('/*LIT: ' + show.typing(this.typing) + '*/ ') : '')
+AST.LiteralInt.prototype.generate = function(cxt) {
+   return this.value.toString() + 
+      ((this.typing && cxt.debug) ? ('/*LIT: ' + show.typing(this.typing) + '*/ ') : '') 
 }
 
-AST.LiteralArray.prototype.generate = function(indent) {
-   return '[' + this.expressions.map((x) => x.generate(indent)).join(', ') + ']' +
-      ((this.typing) ? ('/*ARY: ' + show.typing(this.typing) + '*/ ') : '')
+AST.LiteralArray.prototype.generate = function(cxt) {
+   return '[' + this.expressions.map((x) => x.generate(cxt)).join(cxt.minimise ? ',' : ', ') + ']' +
+      ((this.typing && cxt.debug) ? ('/*ARY: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
-AST.LiteralTuple.prototype.generate = function(indent) {
-   return '(' + this.expressions.map((x) => x.generate(indent)).join(', ') + ')' +
-      ((this.typing) ? ('/*TPL: ' + show.typing(this.typing) + '*/ ') : '')
+AST.LiteralTuple.prototype.generate = function(cxt) {
+   return '(' + this.expressions.map((x) => x.generate(cxt)).join(cxt.minimise ? ',' : ', ') + ')' +
+      ((this.typing && cxt.debug) ? ('/*TPL: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
-AST.Variable.prototype.generate = function(indent) {
+AST.Variable.prototype.generate = function(cxt) {
    return this.name +
-      ((this.typing) ? ('/*VAR: ' + show.typing(this.typing) + '*/ ') : '')
+      ((this.typing && cxt.debug) ? ('/*VAR: ' + show.typing(this.typing) + '*/ ') : '')
 }
 
-AST.Application.prototype.generate = function(indent) {
-   return this.fun.generate() + this.arg.generate() +
-      ((this.typing) ? ('/*APP: ' + show.typing(this.typing) + '*/ ') : '')
+AST.Application.prototype.generate = function(cxt) {
+   return ((this.fun instanceof AST.Variable) ? this.fun.generate(cxt) : '(' +
+      this.fun.generate(cxt) + ')') + this.arg.generate(cxt) +
+      ((this.typing && cxt.debug) ? ('/*APP: ' +
+      show.typing(this.typing) + '*/ ') : '')
 }
 
-AST.Fn.prototype.generate = function(indent) {
-   return 'function' + (this.name ? ' ' : '') + this.name + '(' + this.args.join(', ') + ') {\n' +
-      this.body.generate(indent + 3) + spaces(indent) + '}' +
-      ((this.typing) ? ('/*FUN: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
+AST.Fn.prototype.generate = function(cxt) {
+   cxt.indent += 3
+   const body = this.body.generate(cxt)
+   cxt.indent -= 3
+   return 'function' + (this.name ? ' ' : '') + this.name + '(' +
+      this.args.join(cxt.minimise ? ',' : ', ') + (cxt.minimise ? '){' : ') {\n') + body +
+      spaces(cxt.indent) + '}' + ((this.typing && cxt.debug) ? ('/*FUN: ' +
+      show.typing(this.typing) + '*/ ') : '') + (cxt.minimise ? '' : '\n')
 }
 
-AST.Declaration.prototype.generate = function(indent) {
-   return spaces(indent) + 'var ' + this.name + ' = ' + this.expression.generate(indent) + '; ' +
-      ((this.typing) ? ('/*DCL: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
+AST.Declaration.prototype.generate = function(cxt) {
+   return (cxt.minimise ? '' : spaces(cxt.indent)) + 'var ' + this.name +
+      (cxt.minimise ? '=' : ' = ') + this.expression.generate(cxt) +
+      (cxt.minimise ? ';' : '; ') + ((this.typing && cxt.debug) ? ('/*DCL: ' +
+      show.typing(this.typing) + '*/ ') : '') + (cxt.minimise ? '' : '\n')
 }
 
-AST.Assignment.prototype.generate = function(indent) {
-   return spaces(indent) + this.name + ' = ' + this.expression.generate(indent) + ';\n'
+AST.Assignment.prototype.generate = function(cxt) {
+   return (cxt.minimise ? '' : spaces(cxt.indent)) + this.name +
+   (cxt.minimise ? '=' : ' = ') + this.expression.generate(cxt) + ';' +
+   (cxt.minimise ? '' : '\n')
 }
 
-AST.Return.prototype.generate = function(indent) {
-   return spaces(indent) + 'return ' + this.expression.generate(indent) + '; ' +
-      ((this.typing) ? ('/*RTN: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
+AST.Return.prototype.generate = function(cxt) {
+   return (cxt.minimise ? '' : spaces(cxt.indent)) + 'return ' +
+      this.expression.generate(cxt) + (cxt.minimise ? ';' : '; ') +
+      ((this.typing && cxt.debug) ? ('/*RTN: ' + show.typing(this.typing) +
+      '*/ ') : '') + (cxt.minimise ? '' : '\n')
 }
 
-AST.Block.prototype.generate = function(indent) {
-   return this.statements.map((x) => x.generate(indent)).join('') + '\n' +
-      ((this.typing) ? ('/*BLK: ' + show.typing(this.typing) + '*/ ') : '') + '\n'
+AST.Block.prototype.generate = function(cxt) {
+   return this.statements.map((x) => x.generate(cxt)).join('') + (cxt.minimise ? '' : '\n') +
+      ((this.typing && cxt.debug) ? ('/*BLK: ' + show.typing(this.typing) + '*/ ') : '') +
+      (cxt.minimise ? '' : '\n')
 }
 
 //----------------------------------------------------------------------------
 // The type generation methods need to use 'find' for each node to make sure
 // it is using the representative type for each equivalence class
 
-AST.Typing.prototype.generate = function(indent) {
+AST.Typing.prototype.generate = function(cxt) {
     const keys = this.context.keys()
     let s = ''
     if (keys.length > 0) {
@@ -76,11 +89,11 @@ AST.Typing.prototype.generate = function(indent) {
     return s + this.type.find().generate()
 }
 
-AST.TypeVariable.prototype.generate = function(indent) {
+AST.TypeVariable.prototype.generate = function(cxt) {
     return 't' + this.id
 }
 
-AST.TypeConstructor.prototype.generate = function(indent) {
+AST.TypeConstructor.prototype.generate = function(cxt) {
     let s = this.constructor
     if (this.params.length > 0) {
         s += '<'
@@ -95,8 +108,21 @@ AST.TypeConstructor.prototype.generate = function(indent) {
     return s
 }
 
-return (ast) => {
-   return ast.generate(0) + '\n'
+return class {
+   constructor(debug) {
+      this.indent = 0
+      this.debug = debug
+   }
+         
+   minimal(ast) {
+      this.minimise = true
+      return ast.generate(this)
+   }
+
+   pretty(ast) {
+      this.minimise = false
+      return ast.generate(this)
+   }
 }
 
 })()

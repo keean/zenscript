@@ -34,7 +34,7 @@ AST.Variable.prototype.infer = function() {
 }
 
 AST.LiteralTuple.prototype.infer = function() {
-   const context = new MultiMap
+   const context = new MultiMap()
    const type = new AST.TypeConstructor('Product', new Array(this.expressions.length))
    for (let i = 0; i < this.expressions.length; ++i) {
        const typing = this.expressions[i].infer()
@@ -54,13 +54,13 @@ AST.Application.prototype.infer = function() {
    const f = inst(this.fun.infer())
    const a = inst(this.arg.infer())
    f.context.union(a.context)
-   const t = new AST.Typing(new AST.TypeVariable, f.context)
+   const t = new AST.Typing(new AST.TypeVariable(), f.context)
    const u = new AST.TypeConstructor('Arrow', [a.type, t.type])
    if (unify.types(f.type, u)) {
       this.typing = t
    } else {
       const g = this.fun.typing.type
-      const b = new AST.TypeConstructor('Arrow', [this.arg.typing.type, new AST.TypeVariable])
+      const b = new AST.TypeConstructor('Arrow', [this.arg.typing.type, new AST.TypeVariable()])
       this.typing = new AST.Typing(new AST.TypeConstructor('!Fail!', [g, b]))
    }
    deepFreeze(this.typing)
@@ -69,9 +69,9 @@ AST.Application.prototype.infer = function() {
 
 AST.Fn.prototype.infer = function() {
    const b = inst(this.body.infer())
-   const ps = new AST.TypeConstructor('Product', new Array())
+   const ps = new AST.TypeConstructor('Product', [])
    for (const r of this.args) {
-      const a = new AST.TypeVariable
+      const a = new AST.TypeVariable()
       const ts = b.context.get(r) || []
       for (const t of ts) {
          if (!unify.types(a, t)) {
@@ -90,7 +90,6 @@ AST.Fn.prototype.infer = function() {
 AST.Declaration.prototype.infer = function() {
    this.typing = new AST.Typing(UnitType)
    this.typing.defined.set(this.name, this.expression.infer())
-   const show = new Show
    deepFreeze(this.typing)
    return this.typing
   
@@ -129,12 +128,10 @@ function resolveReferences(context, defined, outcxt) {
    }
 }
 
-
 AST.Block.prototype.infer = function() {
-   const context = new MultiMap
+   const context = new MultiMap()
    const defined = new Map()
    let type = UnitType
-
    for(let i = 0; i < this.statements.length; ++i) {
       const statement_typing = inst(this.statements[i].infer())
       resolveReferences(statement_typing.context, defined, context)
@@ -143,7 +140,6 @@ AST.Block.prototype.infer = function() {
       }
       type = statement_typing.type
    }
-
    this.typing = new AST.Typing(type, context, defined)
    deepFreeze(this.typing)
    return this.typing
