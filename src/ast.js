@@ -3,16 +3,11 @@ module.exports = (() => {
    const MultiMap = require('../src/multimap.js')
 
    let tyvar_id = 0
-   let term_id = 0
 
    //-------------------------------------------------------------------------
-   // Base class for term nodes provides serial id.
+   // Base class for term nodes.
  
-   class Term {
-      constructor() {
-         this.id = term_id++
-      }
-   }
+   class Term {}
 
    //-------------------------------------------------------------------------
    // Base class for type nodes provides union-find methods for finding the

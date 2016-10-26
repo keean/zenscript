@@ -196,10 +196,10 @@ function application(exp1, exps) {
    })
 }
 
-sub_expression_lazy = variable.or(int_lit).or(literal_function).or(tuple).skip(exp_space)
+sub_expression_lazy = literal_function.or(variable).or(int_lit).or(tuple).skip(exp_space)
 
 expression_lazy = application(
-   variable.or(int_lit).or(literal_function).or(singleton).or(in_parenthesis(expression)).or(tuple).skip(exp_space),
+   literal_function.or(variable).or(int_lit).or(singleton).or(in_parenthesis(expression)).or(tuple).skip(exp_space),
    sub_expression)
 
 //------------------------------------------------------------------------
