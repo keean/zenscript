@@ -169,22 +169,24 @@ const literal_function = P.seqMap(
 )
 
 // expression_list = expression, {',', expression}
-expression_list_lazy = P.sepBy(expression, comma) /*P.seqMap(
-   expression.skip(comma),
-   P.sepBy(expression, comma).or(P.succeed([])),
-   (e, es) => {
-      es.unshift(e)
-      return es
-   }
-)*/
+expression_list_lazy = P.sepBy(expression, comma)
+
+function in_parenthesis(exp) {
+   return bracket_open.then(exp).skip(bracket_close)
+}
 
 // tuple = '(', expression_list, ')'
-const tuple = bracket_open.then(expression_list).skip(bracket_close).map((exp_list) => {
+const tuple = in_parenthesis(expression_list).map((exp_list) => {
    return new AST.LiteralTuple(exp_list)
 })
 
-function application(exp) {
-   return exp.atLeast(1).map((app_list) => {
+const singleton = in_parenthesis(variable.or(int_lit).or(in_parenthesis(expression))).map((term) => {
+   return new AST.LiteralTuple([term])
+})
+
+function application(exp1, exps) {
+   return P.seqMap(exp1, exps.many(), (app, app_list) => {
+      app_list.unshift(app)
       let i = 0
       let apps = app_list[i++]
       while (i < app_list.length) {
@@ -194,20 +196,11 @@ function application(exp) {
    })
 }
 
-function in_parenthesis(exp) {
-   return bracket_open.then(exp).skip(bracket_close)
-}
+sub_expression_lazy = variable.or(int_lit).or(literal_function).or(tuple).skip(exp_space)
 
-sub_expression_lazy = application(variable.or(int_lit).or(literal_function).or(in_parenthesis(expression)).or(tuple).skip(exp_space))
 expression_lazy = application(
-   variable
-   .or(int_lit)
-   .or(literal_function)
-   .or(in_parenthesis(literal_function))
-   .or(tuple)
-   .or(in_parenthesis(expression))
-   .skip(exp_space)
-)
+   variable.or(int_lit).or(literal_function).or(singleton).or(in_parenthesis(expression)).or(tuple).skip(exp_space),
+   sub_expression)
 
 //------------------------------------------------------------------------
 // Statements
