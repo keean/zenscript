@@ -186,21 +186,21 @@ const singleton = in_parenthesis(variable.or(int_lit).or(in_parenthesis(expressi
 
 function application(exp1, exps) {
    return P.seqMap(exp1, exps.many(), (app, app_list) => {
-      app_list.unshift(app)
-      let i = 0
-      let apps = app_list[i++]
-      while (i < app_list.length) {
-         apps = new AST.Application(apps, app_list[i++])
+      if (app_list.length > 0) {
+         if (app instanceof AST.LiteralTuple && app.expressions.length == 1) {
+            app = app.expressions[0]
+         }
       }
-      return apps
+      for (const a of app_list) {
+         app = new AST.Application(app, a)
+      }
+      return app
    })
 }
 
 sub_expression_lazy = literal_function.or(variable).or(int_lit).or(tuple).skip(exp_space)
 
-expression_lazy = application(
-   literal_function.or(variable).or(int_lit).or(singleton).or(in_parenthesis(expression)).or(tuple).skip(exp_space),
-   sub_expression)
+expression_lazy = application(sub_expression, sub_expression)
 
 //------------------------------------------------------------------------
 // Statements
