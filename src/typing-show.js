@@ -28,9 +28,9 @@ AST.Typing.prototype.muConvert = function(cxt) {
       }
    }
    this.type.find().muConvert(cxt)
-   //for (const x of this.defined.values()) {
-   //   x.muConvert(cxt)
-   //}
+   for (const x of this.defined.values()) {
+      x.muConvert(cxt)
+   }
 }
 
 //----------------------------------------------------------------------------
@@ -60,11 +60,29 @@ AST.TypeVariable.prototype.show = function(cxt) {
    return id_to_name(v)
 }
 
+/*const infixConstructors = new Map([
+   ['Arrow', ' -> '],
+])*/
+
 AST.TypeConstructor.prototype.show = function(cxt) {
    let m = cxt.mu_map.get(this)
    if (m === undefined || !cxt.visited_set.has(this)) {
       cxt.visited_set.add(this)
       let str = this.constructor
+      /*let sym = infixConstructors.get(str)
+      if ((sym !== undefined) && (this.params.length === 2)) {
+         return this.params[0].find().show(cxt) + sym + this.params[1].find().show(cxt)
+      } 
+      if (str === 'Product') {
+         str = '('
+         for (let i = 0; i < this.params.length; ++i) {
+            str += this.params[i].find().show(cxt)
+            if (i + 1 < this.params.length) {
+               str += ', '
+            }
+         }
+         return str + ')'
+      }*/
       if (this.params.length > 0) {
          str += '<'
          for (let i = 0; i < this.params.length; ++i) {
