@@ -1,6 +1,6 @@
-let id2 = (x) =>
+id2(x) =>
 
-    let id = (x) => (x,x)
+    id(x) => (x,x)
 
     let id3 = (x) => id(
 
@@ -8,6 +8,6 @@ let id2 = (x) =>
 
     let y = id(x)
 
-    return id3(y)
+    return id3(((x) => x)(y))
 
 id2(42)

@@ -139,8 +139,9 @@ const sub_expression = P.lazy(() => {return sub_expression_lazy})
 // Expressions
 
 
-const bracket_open = P.string('(').skip(exp_space)
-const bracket_close = P.string(')').skip(exp_space)
+const paren_open = P.string('(').skip(exp_space)
+const paren_close = P.string(')').skip(exp_space)
+const thin_arrow = P.string('->').skip(space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
 const identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
@@ -158,10 +159,14 @@ const int_lit = P.regexp(/[0-9]+/).map((i) => {
 // arg_list = identifier, {comma, identifier}
 const arg_list = P.sepBy(identifier, comma)
 
+function in_parenthesis(exp) {
+   return paren_open.then(exp).skip(paren_close)
+}
+
 // literal_function = [identifier], '(', arg_list, ')', '=>' (NL, block | expression)
 const literal_function = P.seqMap(
    identifier.or(P.succeed('')),
-   bracket_open.then(arg_list).skip(bracket_close).skip(fat_arrow),
+   in_parenthesis(arg_list).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Fn(name, args, body)
@@ -170,10 +175,6 @@ const literal_function = P.seqMap(
 
 // expression_list = expression, {',', expression}
 expression_list_lazy = P.sepBy(expression, comma)
-
-function in_parenthesis(exp) {
-   return bracket_open.then(exp).skip(bracket_close)
-}
 
 // tuple = '(', expression_list, ')'
 const tuple = in_parenthesis(expression_list).map((exp_list) => {
@@ -221,7 +222,18 @@ const rtn = return_keyword.then(space).then(expression).map((exp) => {
    return new AST.Return(exp)
 })
 
-const statement = rtn.or(assignment).or(expression).skip(space)
+const defineFunction = P.seqMap(
+   identifier,
+   in_parenthesis(arg_list).skip(fat_arrow),
+   (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
+   (name, args, body) => {
+      return new AST.Declaration(name, new AST.Fn(name, args, body))
+   }
+)
+
+// expression_list = expression, {',', expression}
+
+const statement = rtn.or(defineFunction).or(assignment).or(expression).skip(space)
 
 //------------------------------------------------------------------------
 // Blocks
