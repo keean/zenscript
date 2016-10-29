@@ -144,6 +144,7 @@ const paren_close = P.string(')').skip(exp_space)
 const thin_arrow = P.string('->').skip(space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
+const typeAnnotation = P.string(':').skip(space)
 const identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
 
 // ID
@@ -155,6 +156,16 @@ const variable = identifier.map((id) => {
 const int_lit = P.regexp(/[0-9]+/).map((i) => {
    return new AST.LiteralInt(parseInt(i))
 })
+
+// typedIdentifier = identifier, [typeAnnotation, typeExpression]
+const typedIdentifier = P.seqMap(
+   identifier,
+   (typeAnnotation.then(typeExpression)).or(P.succeed()),
+   (ident, type) => {
+      let v = AST.Variable(ident)
+      v.userType = type
+   }
+)
 
 // arg_list = identifier, {comma, identifier}
 const arg_list = P.sepBy(identifier, comma)
