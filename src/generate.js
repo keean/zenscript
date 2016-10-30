@@ -41,9 +41,10 @@ AST.Fn.prototype.generate = function(cxt) {
    const body = this.body.generate(cxt)
    cxt.indent -= 3
    return 'function' + (this.name ? ' ' : '') + this.name + '(' +
-      this.args.join(cxt.minimise ? ',' : ', ') + (cxt.minimise ? '){' : ') {\n') + body +
-      spaces(cxt.indent) + '}' + ((this.typing && cxt.debug) ? ('/*FUN: ' +
-      show.typing(this.typing) + '*/ ') : '') + (cxt.minimise ? '' : '\n')
+      this.args.map((x) => x.name).join(cxt.minimise ? ',' : ', ') +
+      (cxt.minimise ? '){' : ') {\n') + body + spaces(cxt.indent) + '}' +
+      ((this.typing && cxt.debug) ? ('/*FUN: ' + show.typing(this.typing) +
+      '*/ ') : '') + (cxt.minimise ? '' : '\n')
 }
 
 AST.Declaration.prototype.generate = function(cxt) {

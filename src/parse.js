@@ -157,18 +157,18 @@ const int_lit = P.regexp(/[0-9]+/).map((i) => {
    return new AST.LiteralInt(parseInt(i))
 })
 
+// arg_list = identifier, {comma, identifier}
+const arg_list = P.sepBy(identifier, comma)
+
 // typedIdentifier = identifier, [typeAnnotation, typeExpression]
-const typedIdentifier = P.seqMap(
-   identifier,
-   (typeAnnotation.then(typeExpression)).or(P.succeed()),
-   (ident, type) => {
-      let v = AST.Variable(ident)
-      v.userType = type
+const typedVariable = P.seqMap(variable,
+   (typeAnnotation.then(typeExpression)).or(P.succeed()), (v, t) => {
+      v.userType = t // *FIXME* we need to use a central shared type object
+      return v;
    }
 )
 
-// arg_list = identifier, {comma, identifier}
-const arg_list = P.sepBy(identifier, comma)
+const typedArgList = P.sepBy(typedVariable, comma)
 
 function in_parenthesis(exp) {
    return paren_open.then(exp).skip(paren_close)
@@ -177,7 +177,7 @@ function in_parenthesis(exp) {
 // literal_function = [identifier], '(', arg_list, ')', '=>' (NL, block | expression)
 const literal_function = P.seqMap(
    identifier.or(P.succeed('')),
-   in_parenthesis(arg_list).skip(fat_arrow),
+   in_parenthesis(typedArgList).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Fn(name, args, body)
@@ -217,25 +217,25 @@ expression_lazy = application(sub_expression, sub_expression)
 //------------------------------------------------------------------------
 // Statements
 
-const assign_keyword = P.string('let')
+// Assignments
+const assignKeyword = P.string('let')
 const assignment = P.seqMap(
-   assign_keyword.then(space).then(identifier).skip(assign).skip(space),
+   assignKeyword.then(space).then(identifier).skip(assign).skip(space),
    expression,
    (name, expr) => {
       return new AST.Declaration(name, expr)
    }
 )
 
-
-const return_keyword = P.string('return')
-
-const rtn = return_keyword.then(space).then(expression).map((exp) => {
+// Return
+const returnKeyword = P.string('return')
+const rtn = returnKeyword.then(space).then(expression).map((exp) => {
    return new AST.Return(exp)
 })
 
 const defineFunction = P.seqMap(
    identifier,
-   in_parenthesis(arg_list).skip(fat_arrow),
+   in_parenthesis(typedArgList).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Declaration(name, new AST.Fn(name, args, body))

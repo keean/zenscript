@@ -18,6 +18,7 @@ function deepFreeze(obj) {
    return obj
 }
 
+// These types need to be stored centrally
 const IntegerType = deepFreeze(new AST.TypeConstructor('Int', []))
 const UnitType = deepFreeze(new AST.TypeConstructor('Unit', []))
 
@@ -69,13 +70,13 @@ AST.Fn.prototype.infer = function() {
    const ps = new AST.TypeConstructor('Product', [])
    for (const r of this.args) {
       const a = new AST.TypeVariable()
-      const ts = b.context.get(r) || []
+      const ts = b.context.get(r.name) || []
       for (const t of ts) {
          if (!unify.types(a, t)) {
             throw 'unification failed'
          }
       }
-      b.context.erase(r)
+      b.context.erase(r.name)
       ps.params.push(a)
    }
 
