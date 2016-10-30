@@ -1,13 +1,15 @@
-id2(x1 : Int) =>
+id2(x1) =>
 
-    id(x2) => (x2,x2)
+   id(x2) => (x2, x2)
 
-    let id3 = (x3) => id(
+   let id3 = (x3) => id(
 
-        x3)
+      x3)
 
-    let y = id(x1)
+   id4(x : Int) => x
 
-    return id3(((x4) => x4)(y))
+   let y = id(id4(x1))
+
+   return id3(((x4) => x4)(y))
 
 id2(42)

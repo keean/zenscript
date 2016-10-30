@@ -69,11 +69,15 @@ AST.Fn.prototype.infer = function() {
    const b = inst(this.body.infer())
    const ps = new AST.TypeConstructor('Product', [])
    for (const r of this.args) {
-      const a = new AST.TypeVariable()
+      let a = r.userType
+      if (a === undefined) {
+         a = new AST.TypeVariable()
+      }
       const ts = b.context.get(r.name) || []
       for (const t of ts) {
          if (!unify.types(a, t)) {
-            throw 'unification failed'
+            const show = new Show()
+            throw 'unification failed' + show.type(a) + ' :u: ' + show.type(t)
          }
       }
       b.context.erase(r.name)
@@ -111,7 +115,8 @@ function resolveReferences(context, defined, outcxt) {
          const mono = inst(poly)
          for (const c of context.get(key)) {
             if (!unify.types(mono.type, c)) {
-               throw 'unification failed'
+               const show = new Show()
+               throw 'unification failed: ' + show.type(mono.type) + ' :u: ' + show.type(c)
             }
          }
          resolveReferences(mono.context, defined, outcxt)
