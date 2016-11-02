@@ -103,7 +103,7 @@ typeListLazy = P.sepBy(typeSubExpression, comma)
 
 const typeExpression = P.succeed().chain(() => {
    var_map.clear()
-   return typeSubExpression
+   return AST.deepFreeze(typeSubExpression)
 })
 
 //------------------------------------------------------------------------
@@ -218,12 +218,12 @@ expression_lazy = application(sub_expression, sub_expression)
 // Statements
 
 // Assignments
-const assignKeyword = P.string('let')
+const assignKeyword = P.string('let').then(exp_space)
 const assignment = P.seqMap(
-   assignKeyword.then(space).then(identifier).skip(assign).skip(space),
+   assignKeyword.then(typedVariable).skip(assign),
    expression,
-   (name, expr) => {
-      return new AST.Declaration(name, expr)
+   (v, e) => {
+      return new AST.Declaration(v, e)
    }
 )
 
@@ -238,7 +238,7 @@ const defineFunction = P.seqMap(
    in_parenthesis(typedArgList).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
-      return new AST.Declaration(name, new AST.Fn(name, args, body))
+      return new AST.Declaration(new AST.Variable(name), new AST.Fn(name, args, body))
    }
 )
 

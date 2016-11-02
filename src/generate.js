@@ -48,7 +48,7 @@ AST.Fn.prototype.generate = function(cxt) {
 }
 
 AST.Declaration.prototype.generate = function(cxt) {
-   return (cxt.minimise ? '' : spaces(cxt.indent)) + 'var ' + this.name +
+   return (cxt.minimise ? '' : spaces(cxt.indent)) + 'var ' + this.variable.generate(cxt) +
       (cxt.minimise ? '=' : ' = ') + this.expression.generate(cxt) +
       (cxt.minimise ? ';' : '; ') + ((this.typing && cxt.debug) ? ('/*DCL: ' +
       show.typing(this.typing) + '*/ ') : '') + (cxt.minimise ? '' : '\n')

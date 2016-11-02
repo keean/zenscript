@@ -78,7 +78,18 @@ AST.Fn.prototype.infer = function() {
 
 AST.Declaration.prototype.infer = function() {
    this.typing = new AST.Typing(UnitType)
-   this.typing.defined.set(this.name, this.expression.infer())
+   const a = this.variable.userType
+   const b = this.expression.infer()
+   const show = new Show()
+   let c = b
+   if (a !== undefined) {
+      c = inst(c)
+      if (!unify.types(inst(a), c.type)) {
+         const show = new Show()
+         throw 'unification failed' + show.type(a) + ' :u: ' + show.type(b.type)
+      }
+   }
+   this.typing.defined.set(this.variable.name, c)
    return AST.deepFreeze(this.typing)
 }
 

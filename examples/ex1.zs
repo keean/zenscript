@@ -2,7 +2,7 @@ id2(x1) =>
 
    id(x2) => (x2, x2)
 
-   let id3 = (x3) => id(
+   let id3 :  Arrow<Product<A>, Product<A, A>> = (x3) => id(
 
       x3)
 

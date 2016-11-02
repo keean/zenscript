@@ -124,10 +124,10 @@ module.exports = (() => {
       },
 
       Declaration : class extends Term {
-         constructor(n, e) {
+         constructor(v, e) {
             super()
             this.tag = 'declaration'
-            this.name = n
+            this.variable = v
             this.expression = e
          }
       },
