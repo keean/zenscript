@@ -163,7 +163,7 @@ const arg_list = P.sepBy(identifier, comma)
 // typedIdentifier = identifier, [typeAnnotation, typeExpression]
 const typedVariable = P.seqMap(variable,
    (typeAnnotation.then(typeExpression)).or(P.succeed()), (v, t) => {
-      v.userType = t // *FIXME* we need to use a central shared type object
+      v.userType = t
       return v;
    }
 )

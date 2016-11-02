@@ -51,11 +51,24 @@ module.exports = (() => {
 
    //-------------------------------------------------------------------------
    // The AST classes are implemented so they can be serialised to JSON
+   
+   function deepFreeze(obj) {
+      Object.freeze(obj)
+      for (const k of Object.keys(obj)) {
+         const p = obj[k]
+         if (typeof p == 'object' && p !== null && !Object.isFrozen(p)) {
+            deepFreeze(p)
+         }
+      }
+      return obj
+   }
 
    return Object.freeze({ 
       resetTyvarId() {
          tyvar_id = 0
       },
+
+      deepFreeze : deepFreeze,
 
       // Values
      
@@ -165,7 +178,7 @@ module.exports = (() => {
          constructor(n, ps) {
             super()
             this.tag = 'type_constructor'
-            this.constructor = n
+            this.atom = n
             this.params = ps
          }
       },

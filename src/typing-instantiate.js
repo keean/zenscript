@@ -24,7 +24,7 @@ AST.TypeVariable.prototype.instantiate = function() {
 AST.TypeConstructor.prototype.instantiate = function() {
    let f = trec_map.get(this)
    if (f === undefined) {
-      f = new AST.TypeConstructor(this.constructor, new Array(this.params.length))
+      f = new AST.TypeConstructor(this.atom, new Array(this.params.length))
       trec_map.set(this, f)
       for (let i = 0; i < this.params.length; ++i) {
          f.params[i] = this.params[i].find().instantiate()
@@ -45,9 +45,7 @@ AST.Typing.prototype.instantiate = function() {
 }
 
 return (ast) => {
-   if (ast) { // FIXME
-      return ast.instantiate()
-   }
+   return ast.instantiate()
 }
 
 })()

@@ -95,7 +95,7 @@ AST.TypeVariable.prototype.generate = function(cxt) {
 }
 
 AST.TypeConstructor.prototype.generate = function(cxt) {
-    let s = this.constructor
+    let s = this.atom
     if (this.params.length > 0) {
         s += '<'
         for (let i = 0; i < this.params.length; ++i) {

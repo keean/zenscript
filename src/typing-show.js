@@ -68,7 +68,7 @@ AST.TypeConstructor.prototype.show = function(cxt) {
    let m = cxt.mu_map.get(this)
    if (m === undefined || !cxt.visited_set.has(this)) {
       cxt.visited_set.add(this)
-      let str = this.constructor
+      let str = this.atom
       /*let sym = infixConstructors.get(str)
       if ((sym !== undefined) && (this.params.length === 2)) {
          return this.params[0].find().show(cxt) + sym + this.params[1].find().show(cxt)

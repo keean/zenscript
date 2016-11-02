@@ -28,7 +28,7 @@ AST.TypeVariable.prototype.constructor_unify = function(that) {
 }
 
 AST.TypeConstructor.prototype.constructor_unify = function(that) {
-   if (this.constructor === that.constructor && this.params.length === that.params.length) {
+   if (this.atom === that.atom && this.params.length === that.params.length) {
       for(let i = 0; i < this.params.length; ++i) {
          todo.push([this.params[i], that.params[i]])
       }

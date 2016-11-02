@@ -7,30 +7,18 @@ const inst = require('../src/typing-instantiate.js')
 const unify = require('../src/unification.js')
 const Show = require('../src/typing-show.js')
 
-function deepFreeze(obj) {
-   Object.freeze(obj)
-   for (const k of Object.keys(obj)) {
-      const p = obj[k]
-      if (typeof p == 'object' && p !== null) {
-         deepFreeze(p)
-      }
-   }
-   return obj
-}
-
-// These types need to be stored centrally
-const IntegerType = deepFreeze(new AST.TypeConstructor('Int', []))
-const UnitType = deepFreeze(new AST.TypeConstructor('Unit', []))
+const IntegerType = AST.deepFreeze(new AST.TypeConstructor('Int', []))
+const UnitType = AST.deepFreeze(new AST.TypeConstructor('Unit', []))
 
 AST.LiteralInt.prototype.infer = function() {
    this.typing = new AST.Typing(IntegerType)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.Variable.prototype.infer = function() {
    this.typing = new AST.Typing(new AST.TypeVariable('VAR'))
    this.typing.context.set(this.name, this.typing.type)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.LiteralTuple.prototype.infer = function() {
@@ -42,7 +30,7 @@ AST.LiteralTuple.prototype.infer = function() {
        type.params[i] = typing.type
    }
    this.typing = new AST.Typing(type, context)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.LiteralArray.prototype.infer = function() {
@@ -62,7 +50,7 @@ AST.Application.prototype.infer = function() {
       const b = new AST.TypeConstructor('Arrow', [this.arg.typing.type, new AST.TypeVariable()])
       this.typing = new AST.Typing(new AST.TypeConstructor('!Fail!', [g, b]))
    }
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.Fn.prototype.infer = function() {
@@ -85,13 +73,13 @@ AST.Fn.prototype.infer = function() {
    }
 
    this.typing = new AST.Typing(new AST.TypeConstructor('Arrow', [ps, b.type]), b.context)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.Declaration.prototype.infer = function() {
    this.typing = new AST.Typing(UnitType)
    this.typing.defined.set(this.name, this.expression.infer())
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 AST.Assignment.prototype.infer = function() {
@@ -99,13 +87,13 @@ AST.Assignment.prototype.infer = function() {
    /*this.expression.typing()
    this.typing = new AST.Typing(this.expression.context, UnitType)
    this.typing = new AST.Typing(new Map, UnitType)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
    return this.typing*/
 }
 
 AST.Return.prototype.infer = function() {
    this.typing = this.expression.infer()
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 function resolveReferences(context, defined, outcxt) {
@@ -141,7 +129,7 @@ AST.Block.prototype.infer = function() {
       type = statement_typing.type
    }
    this.typing = new AST.Typing(type, context, defined)
-   return deepFreeze(this.typing)
+   return AST.deepFreeze(this.typing)
 }
 
 return (ast) => {
