@@ -3,9 +3,10 @@ module.exports = (() => {
 
 const AST = require('../src/ast.js')
 const MultiMap = require('../src/multimap.js')
-const inst = require('../src/typing-instantiate.js')
 const unify = require('../src/unification.js')
+const inst = require('../src/typing-instantiate.js')
 const Show = require('../src/typing-show.js')
+const explain = require('../src/typing-explain.js')
 
 const IntegerType = AST.deepFreeze(new AST.TypeConstructor('Int', []))
 const UnitType = AST.deepFreeze(new AST.TypeConstructor('Unit', []))
@@ -64,8 +65,9 @@ AST.Fn.prototype.infer = function() {
       const ts = b.context.get(r.name) || []
       for (const t of ts) {
          if (!unify.types(a, t)) {
+            console.log(explain(this))
             const show = new Show()
-            throw 'unification failed' + show.type(a) + ' :u: ' + show.type(t)
+            throw 'unification failed: ' + show.type(a) + ' :u: ' + show.type(t)
          }
       }
       b.context.erase(r.name)
@@ -85,8 +87,9 @@ AST.Declaration.prototype.infer = function() {
    if (a !== undefined) {
       c = inst(c)
       if (!unify.types(inst(a), c.type)) {
+         console.log(explain(this.expression))
          const show = new Show()
-         throw 'unification failed' + show.type(a) + ' :u: ' + show.type(b.type)
+         throw 'unification failed: ' + show.type(a) + ' :u: ' + show.type(b.type)
       }
    }
    this.typing.defined.set(this.variable.name, c)
@@ -114,6 +117,7 @@ function resolveReferences(context, defined, outcxt) {
          const mono = inst(poly)
          for (const c of context.get(key)) {
             if (!unify.types(mono.type, c)) {
+               console.log(explain(this))
                const show = new Show()
                throw 'unification failed: ' + show.type(mono.type) + ' :u: ' + show.type(c)
             }
