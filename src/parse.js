@@ -5,53 +5,8 @@ const P = require('parsimmon')
 const AST = require('../src/ast.js')
 const unify = require('../src/unification.js')
 const show = require('../src/typing-show.js')
+const IndentationParser = require('../src/parse-indentation.js')
 
-//------------------------------------------------------------------------
-// Indentation Parser
-
-function IndentationParser(init) {
-   this.indent = init
-}
-IndentationParser.prototype.get = function() {
-   return this.indent
-}
-IndentationParser.prototype.set = function(i) {
-   this.indent = i
-}
-IndentationParser.prototype.relative = function(relation) {
-   return P.custom((success, failure) => {
-      return (stream, i) => {
-         let j = 0
-         while (stream.charAt(i + j) == ' ') {
-            j = j + 1
-         }
-         if (relation.op(j, this.indent)) {
-            return success(i + j, j)
-         } else {
-            return failure(i, 'indentation error: ' + j + relation.err + this.indent)
-         }
-      }
-   })
-}
-IndentationParser.prototype.absolute = function(target) {
-   return P.custom((success, failure) => {
-      return (stream, i) => {
-         let j = 0
-         while (stream.charAt(i + j) == ' ') {
-            j = j + 1
-         }
-         if (j == target) {
-            return success(i + j, j)
-         } else {
-            return failure(i, 'indentation error: ' + j + ' does not equal ' + target)
-         }
-      }
-   })
-}
-IndentationParser.prototype.eq  = {op: (x, y) => {return x == y}, err: ' does not equal '}
-IndentationParser.prototype.ge  = {op: (x, y) => {return x >= y}, err: ' is not equal or greater than '}
-IndentationParser.prototype.gt  = {op: (x, y) => {return x > y}, err: ' is not greater than '}
-IndentationParser.prototype.any = {op: (x, y) => {return true}, err: ' cannot fail '}
 const Indent = new IndentationParser(0)
 
 //------------------------------------------------------------------------
@@ -77,6 +32,7 @@ const typeVariable = P.regexp(/[A-Z]+[A-Z0-9]*/).skip(exp_space).map((n) => {
    return t
 })
 
+
 let typeListLazy
 const typeList = P.lazy(() => {return typeListLazy})
 
@@ -85,6 +41,14 @@ const typeConstructor = P.seqMap(
    (P.string('<').then(exp_space).then(typeList).skip(exp_space).skip(P.string('>')).skip(exp_space)).or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
+
+/*
+const arrow = P.string('->').skip(exp_space)
+const arrowTypeConstructor = P.seqMap(
+   typeSubExpression.skip(arrow), typeSubExpression,
+   (a, b) => {return new AST.TypeConstructor('Arrow', [a, b])}
+)
+*/
 
 const typeSubExpression = P.seqMap(
    typeConstructor.or(typeVariable),

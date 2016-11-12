@@ -22,11 +22,10 @@
   },
   "homepage": "https://github.com/keean/zenscript#readme",
   "dependencies": {
-    "chai": "^3.5.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.0.2",
-    "parsimmon": "^0.9.2"
+    "parsimmon": "^1.0.0"
   }
 }

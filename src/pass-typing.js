@@ -110,14 +110,14 @@ AST.Return.prototype.infer = function() {
    return AST.deepFreeze(this.typing)
 }
 
-function resolveReferences(context, defined, outcxt) {
+function resolveReferences(node, context, defined, outcxt) {
    for (const key of context.keys()) {  
       const poly = defined.get(key)
       if (poly !== undefined) {
          const mono = inst(poly)
          for (const c of context.get(key)) {
             if (!unify.types(mono.type, c)) {
-               console.log(explain(this))
+               console.log(explain(node))
                const show = new Show()
                throw 'unification failed: ' + show.type(mono.type) + ' :u: ' + show.type(c)
             }
@@ -137,7 +137,7 @@ AST.Block.prototype.infer = function() {
    let type = UnitType
    for(let i = 0; i < this.statements.length; ++i) {
       const statement_typing = inst(this.statements[i].infer())
-      resolveReferences(statement_typing.context, defined, context)
+      resolveReferences(this, statement_typing.context, defined, context)
       for (const [k, v] of statement_typing.defined.entries()) {
          defined.set(k, v)
       }

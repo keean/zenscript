@@ -70,7 +70,7 @@ AST.Application.prototype.explain = function(cxt) {
 AST.Fn.prototype.explain = function(cxt) {
    const body = this.body.explain(cxt)
    body.push(new Step(cxt.id++, '[fun ' + (this.name ? this.name + ' ' : '') + 
-      this.args.map((x) => x.name).join(' ') + ']', show.typing(this.typing)))
+      this.args.map((x) => x.name).join(' ') + ' ' + last(body).id + ']', show.typing(this.typing)))
    return body
 }
 
