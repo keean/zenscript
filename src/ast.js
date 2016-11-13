@@ -70,6 +70,11 @@ module.exports = (() => {
 
       deepFreeze : deepFreeze,
 
+      annotate(term, type) {
+         term.userType = type
+         return term
+      },
+
       // Values
      
       LiteralInt : class extends Term {
