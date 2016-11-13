@@ -6,24 +6,35 @@ const AST = require('../src/ast.js')
 const unify = require('../src/unification.js')
 const show = require('../src/typing-show.js')
 const IndentationParser = require('../src/parse-indentation.js')
+const PrecedenceParser = require('../src/parse-precedence.js')
 
 const Indent = new IndentationParser(0)
 
 //------------------------------------------------------------------------
 // Terminals
 
-const space = P.regex(/[ \t]*/)
-const newline = P.string('\n').desc('newline')    // NL
+// space = {' ' | TAB}
+const space = P.regex(/[ \t]*/).desc('space')
+
+// newline = '\n'
+const newline = P.string('\n').desc('newline')   
+
 // exp_space = {' '}, [NL, {NL}, INDENT.>];
 const exp_space = space.then((newline.atLeast(1).then(Indent.relative(Indent.gt))).atMost(1))
-const comma = P.string(',').skip(exp_space)
+
+// lazy tokenization, consume trailing space
+function token(tok) {
+   return tok.skip(exp_space)
+}
+
+const comma = token(P.string(','))
 
 //------------------------------------------------------------------------
 // Types
 
 const var_map = new Map()
 
-const typeVariable = P.regexp(/[A-Z]+[A-Z0-9]*/).skip(exp_space).map((n) => {
+const typeVariable = token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
    let t = var_map.get(n)
    if (t === undefined) {
       t = new AST.TypeVariable(n)
@@ -32,27 +43,18 @@ const typeVariable = P.regexp(/[A-Z]+[A-Z0-9]*/).skip(exp_space).map((n) => {
    return t
 })
 
-
 let typeListLazy
 const typeList = P.lazy(() => {return typeListLazy})
 
 const typeConstructor = P.seqMap(
-   P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/).skip(exp_space),
-   (P.string('<').then(exp_space).then(typeList).skip(exp_space).skip(P.string('>')).skip(exp_space)).or(P.succeed([])),
+   token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)),
+   token(P.string('<')).then(typeList).skip(token(P.string('>'))).or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
 
-/*
-const arrow = P.string('->').skip(exp_space)
-const arrowTypeConstructor = P.seqMap(
-   typeSubExpression.skip(arrow), typeSubExpression,
-   (a, b) => {return new AST.TypeConstructor('Arrow', [a, b])}
-)
-*/
-
 const typeSubExpression = P.seqMap(
    typeConstructor.or(typeVariable),
-   (P.string('as').then(exp_space).then(typeVariable).skip(exp_space)).or(P.succeed()),
+   (token(P.string('as')).then(typeVariable)).or(P.succeed()),
    (texp, mu) => {
       if (mu !== undefined) {
          if (!unify.types(texp, mu)) {
@@ -65,9 +67,20 @@ const typeSubExpression = P.seqMap(
 
 typeListLazy = P.sepBy(typeSubExpression, comma)
 
+const typeOperator = token(P.regex(/[->]+/))
+
+const TypePrecedence = new PrecedenceParser.PrecedenceParser(typeOperator, typeSubExpression)
+
 const typeExpression = P.succeed().chain(() => {
    var_map.clear()
-   return AST.deepFreeze(typeSubExpression)
+   return TypePrecedence.parseExprWithMinimumPrecedence(0)
+})
+
+// Register type operators with precedence parser
+TypePrecedence.ledop('->', PrecedenceParser.rAssoc, 50, function(info, lhs) {
+   return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
+      return new AST.TypeConstructor('Arrow', [lhs, rhs])
+   })
 })
 
 //------------------------------------------------------------------------

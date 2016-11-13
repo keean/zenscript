@@ -2,7 +2,7 @@ id2(x1) =>
 
    id(x2) => (x2, x2)
 
-   let id3 : Int = (x3) => id(
+   let id3 : Product<A> -> Product<A, A> = (x3) => id(
 
       x3)
 

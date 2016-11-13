@@ -15,6 +15,10 @@ class NullInfo {
       this.precedence = precedence
       this.nullDenotation = nullDenotation
    }
+
+   minimumPrecedence() {
+      return this.precedence
+   }
 }
 
 class LeftInfo {
@@ -24,15 +28,15 @@ class LeftInfo {
       this.precedence = precedence
       this.leftDenotation = leftDenotation
    }
-}
 
-function precedenceValue(info) {
-   if (info.assoc === lAssoc) {
-      return info.precedence + 1
-   } else if (info.assoc === rAssoc) {
-      return info.precedence
-   } else {
-      throw "Unspecified associativity"
+   minimumPrecedence() {
+      if (this.assoc === lAssoc) {
+         return this.precedence + 1
+      } else if (this.assoc === rAssoc) {
+         return this.precedence
+      } else {
+         throw "Unspecified associativity"
+      }
    }
 }
 
@@ -40,12 +44,9 @@ return Object.freeze({
    lAssoc : lAssoc,
    rAssoc : rAssoc,
    PrecedenceParser : class {
-      constructor(operator, term, inOp, preOp, postOp) {
+      constructor(operator, term) {
          this.operator = operator
          this.term = term
-         this.inOp = inOp
-         this.preOp = preOp
-         this.postOp = postOp
          this.leftMap = new Map()
          this.nullMap = new Map()
       }
@@ -64,7 +65,7 @@ return Object.freeze({
             if (info) {
                return info.nullDenotation.call(this, info)
             }
-            return P.fail('Unknown operator ' + info.name)
+            return P.fail('Unknown operator ' + op)
          })
       }
             
@@ -79,36 +80,14 @@ return Object.freeze({
                   return this.parseLeftDenotation(precedence, lhs2)
                })
             }
-            return P.fail('Unkown operator ' + info.name)
+            return P.fail('Unkown operator ' + op)
          }).or(P.succeed(lhs))
       }
 
       parseExprWithMinimumPrecedence(precedence) {
-         return this.parseNullDenotation().or(this.term).chain((lhs) => {
+         return this.term.or(this.parseNullDenotation()).chain((lhs) => {
             return this.parseLeftDenotation(precedence, lhs)
          })
-      }
-
-      parsePrefixOp(info) {
-         return this.parseExprWithMinimumPrecedence(info.precedence).map((rhs) => {
-            return this.preOp(info.name, rhs)
-         })
-      }
-
-      parseInfixOp(info, lhs) {
-         return this.parseExprWithMinimumPrecedence(precedenceValue(info)).map((rhs) => {
-            return this.inOp(lhs, info.name, rhs)
-         })
-      }
-
-      parsePostfixOp(info, lhs) {
-         return P.succeed().map(() => {
-            return this.postOp(info.name, lhs)
-         })
-      }
-
-      parseExpr() {
-         return this.parseExprWithMinimumPrecedence(0)
       }
    }
 })

@@ -122,7 +122,7 @@ function resolveReferences(node, context, defined, outcxt) {
                throw 'unification failed: ' + show.type(mono.type) + ' :u: ' + show.type(c)
             }
          }
-         resolveReferences(mono.context, defined, outcxt)
+         resolveReferences(node, mono.context, defined, outcxt)
       } else {
          for (const c of context.get(key)) {
             outcxt.set(key, c)

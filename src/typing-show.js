@@ -60,6 +60,7 @@ AST.TypeVariable.prototype.show = function(cxt) {
    return id_to_name(v)
 }
 
+// *FIXME* need to use association and precedence when showing operators
 /*const infixConstructors = new Map([
    ['Arrow', ' -> '],
 ])*/
@@ -72,8 +73,8 @@ AST.TypeConstructor.prototype.show = function(cxt) {
       /*let sym = infixConstructors.get(str)
       if ((sym !== undefined) && (this.params.length === 2)) {
          return this.params[0].find().show(cxt) + sym + this.params[1].find().show(cxt)
-      } 
-      if (str === 'Product') {
+      }*/ 
+      /*if (str === 'Product') {
          str = '('
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)

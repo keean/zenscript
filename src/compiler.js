@@ -40,7 +40,7 @@ const compile = (() => {
          console.log('parse time: ' + (parse_end - parse_start) + 'ms')
 
          if (!ast.status) {
-            return console.log(ast.value)
+            return console.log(JSON.stringify(ast))
          }  
 
          //console.log(JSON.stringify(ast))

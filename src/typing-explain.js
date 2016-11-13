@@ -55,7 +55,7 @@ AST.LiteralTuple.prototype.explain = function(cxt) {
 }
 
 AST.Variable.prototype.explain = function(cxt) {
-   return [new Step(cxt.id++, '[var ' + this.name + ']', show.typing(this.typing))]
+   return [new Step(cxt.id++, '[var ' + this.name + ']', this.typing ? show.typing(this.typing) : '')]
 }
 
 AST.Application.prototype.explain = function(cxt) {
@@ -99,7 +99,7 @@ AST.Block.prototype.explain = function(cxt) {
    const s = this.statements.map((x) => x.explain(cxt))
    const b = flatten(s)
    b.push(new Step(cxt.id++, '[blk ' + s.map((x) => last(x).id).join(' ') + ']',
-      show.typing(this.typing)))
+      this.typeing ? show.typing(this.typing) : ''))
    return b
 }
 
