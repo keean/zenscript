@@ -61,7 +61,7 @@ describe('Precedence Parser', () => {
       })
    })
 
-   it('parse operator expression', () => {
+   it('parse negative of a power', () => {
       expect(PPP.parseExprWithMinimumPrecedence(0).parse('-3 ^ 2')).to.deep.equal({
          "status": true, "value": {
             "neg": [{
@@ -72,7 +72,7 @@ describe('Precedence Parser', () => {
       })
    })
 
-   it('parse operator expression', () => {
+   it('parse raise to a negative power', () => {
       expect(PPP.parseExprWithMinimumPrecedence(0).parse('3 ^ -2')).to.deep.equal({
          "status": true, "value": {
             "pow": [3, {"neg": [2]}]
