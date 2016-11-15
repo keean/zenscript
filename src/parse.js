@@ -31,9 +31,14 @@ const comma = token(P.string(','))
 
 function fix(f) {
    let lazy
-   const t = P.lazy(() => {return lazy})
-   lazy = f(t)
+   lazy = f(P.lazy(() => {return lazy}))
    return lazy
+}
+
+const paren_open = token(P.string('('))
+const paren_close = token(P.string(')'))
+function inParenthesis(exp) {
+   return paren_open.then(exp).skip(paren_close)
 }
 
 //------------------------------------------------------------------------
@@ -58,7 +63,7 @@ const typeConstructor = P.seqMap(
 )
 
 const typeSubExpression = P.seqMap(
-   typeConstructor.or(typeVariable),
+   typeConstructor.or(typeVariable).or(inParenthesis(P.lazy(() => {return texp}))),
    (token(P.string('as')).then(typeVariable)).or(P.succeed()),
    (texp, mu) => {
       if (mu !== undefined) {
@@ -120,8 +125,6 @@ const sub_expression = P.lazy(() => {return sub_expression_lazy})
 // Expressions
 
 
-const paren_open = P.string('(').skip(exp_space)
-const paren_close = P.string(')').skip(exp_space)
 const thin_arrow = P.string('->').skip(space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
@@ -153,14 +156,10 @@ const typedVariable = P.seqMap(variable,
 
 const typedArgList = P.sepBy(typedVariable, comma)
 
-function in_parenthesis(exp) {
-   return paren_open.then(exp).skip(paren_close)
-}
-
 // literal_function = [identifier], '(', arg_list, ')', '=>' (NL, block | expression)
 const literal_function = P.seqMap(
    identifier.or(P.succeed('')),
-   in_parenthesis(typedArgList).skip(fat_arrow),
+   inParenthesis(typedArgList).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Fn(name, args, body)
@@ -171,11 +170,11 @@ const literal_function = P.seqMap(
 expression_list_lazy = P.sepBy(expression, comma)
 
 // tuple = '(', expression_list, ')'
-const tuple = in_parenthesis(expression_list).map((exp_list) => {
+const tuple = inParenthesis(expression_list).map((exp_list) => {
    return new AST.LiteralTuple(exp_list)
 })
 
-const singleton = in_parenthesis(variable.or(int_lit).or(in_parenthesis(expression))).map((term) => {
+const singleton = inParenthesis(variable.or(int_lit).or(inParenthesis(expression))).map((term) => {
    return new AST.LiteralTuple([term])
 })
 
@@ -218,7 +217,7 @@ const rtn = returnKeyword.then(space).then(expression).map((exp) => {
 
 const defineFunction = P.seqMap(
    identifier,
-   in_parenthesis(typedArgList).skip(fat_arrow),
+   inParenthesis(typedArgList).skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Declaration(new AST.Variable(name), new AST.Fn(name, args, body))
