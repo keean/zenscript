@@ -29,6 +29,13 @@ function token(tok) {
 
 const comma = token(P.string(','))
 
+function fix(f) {
+   let lazy
+   const t = P.lazy(() => {return lazy})
+   lazy = f(t)
+   return lazy
+}
+
 //------------------------------------------------------------------------
 // Types
 
@@ -43,12 +50,10 @@ const typeVariable = token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
    return t
 })
 
-let typeListLazy
-const typeList = P.lazy(() => {return typeListLazy})
-
+let texp
 const typeConstructor = P.seqMap(
    token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)),
-   token(P.string('<')).then(typeList).skip(token(P.string('>'))).or(P.succeed([])),
+   token(P.string('<')).then(P.sepBy(P.lazy(() => {return texp}), comma)).skip(token(P.string('>'))).or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
 
@@ -65,15 +70,14 @@ const typeSubExpression = P.seqMap(
    }
 )
 
-typeListLazy = P.sepBy(typeSubExpression, comma)
-
 const typeOperator = token(P.regex(/[->]+/))
 
 const TypePrecedence = new PrecedenceParser.PrecedenceParser(typeOperator, typeSubExpression)
+texp = TypePrecedence.parseExprWithMinimumPrecedence(0)
 
 const typeExpression = P.succeed().chain(() => {
    var_map.clear()
-   return TypePrecedence.parseExprWithMinimumPrecedence(0)
+   return texp
 })
 
 // Register type operators with precedence parser
