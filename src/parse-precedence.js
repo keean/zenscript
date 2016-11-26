@@ -2,12 +2,10 @@ module.exports = (() => {
 "use strict"
 
 const P = require('parsimmon')
+const AST = require('../src/ast.js')
 
 //------------------------------------------------------------------------
 // Precedence Parser
-
-const lAssoc = {}
-const rAssoc = {}
 
 class NullInfo {
    constructor(name, precedence, nullDenotation) {
@@ -30,9 +28,9 @@ class LeftInfo {
    }
 
    minimumPrecedence() {
-      if (this.assoc === lAssoc) {
+      if (this.assoc === AST.leftAssociative) {
          return this.precedence + 1
-      } else if (this.assoc === rAssoc) {
+      } else if (this.assoc === AST.rightAssociative) {
          return this.precedence
       } else {
          throw "Unspecified associativity"
@@ -41,8 +39,6 @@ class LeftInfo {
 }
 
 return Object.freeze({
-   lAssoc : lAssoc,
-   rAssoc : rAssoc,
    PrecedenceParser : class {
       constructor(operator, term) {
          this.operator = operator

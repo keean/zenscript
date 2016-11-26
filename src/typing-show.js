@@ -60,20 +60,29 @@ AST.TypeVariable.prototype.show = function(cxt) {
    return id_to_name(v)
 }
 
-// *FIXME* need to use association and precedence when showing operators
-/*const infixConstructors = new Map([
-   ['Arrow', ' -> '],
-])*/
-
 AST.TypeConstructor.prototype.show = function(cxt) {
    let m = cxt.mu_map.get(this)
    if (m === undefined || !cxt.visited_set.has(this)) {
       cxt.visited_set.add(this)
       let str = this.atom
-      /*let sym = infixConstructors.get(str)
-      if ((sym !== undefined) && (this.params.length === 2)) {
-         return this.params[0].find().show(cxt) + sym + this.params[1].find().show(cxt)
-      }*/ 
+      const op = AST.infixTypeOps.get(this.atom)
+      if (op) {
+         const lhs = this.params[0].find()
+         const rhs = this.params[1].find()
+         const lop = AST.infixTypeOps.get(lhs.atom)
+         const rop = AST.infixTypeOps.get(rhs.atom)
+         const leftParenthesis = (lop !== undefined) &&
+            ((op.precedence > lop.precedence) ||
+            ((op.precedence === lop.precedence) &&
+               (op.associativity === AST.rightAssociative)))
+         const rightParenthesis = (rop !== undefined) &&
+            ((op.precedence > rop.precedence) ||
+            ((op.precedence === rop.precedence) &&
+               (op.assiciativity === AST.leftAssociative)))
+         return (leftParenthesis ? '(' : '') + lhs.show(cxt) +
+            (leftParenthesis ? ') ' : ' ') + op.symbol + (rightParenthesis ? ' (' : ' ') +
+            rhs.show(cxt) + (rightParenthesis ? ')' : '')
+      }
       /*if (str === 'Product') {
          str = '('
          for (let i = 0; i < this.params.length; ++i) {

@@ -50,6 +50,20 @@ module.exports = (() => {
    }
 
    //-------------------------------------------------------------------------
+   // Provide associativity information about operators
+
+   class OpInfo {
+      constructor(symbol, associativity, precedence) {
+         this.symbol = symbol
+         this.associativity = associativity
+         this.precedence = precedence
+      }
+   }
+
+   const rightAssociative = {}
+   const leftAssociative = {}
+
+   //-------------------------------------------------------------------------
    // The AST classes are implemented so they can be serialised to JSON
    
    function deepFreeze(obj) {
@@ -74,6 +88,15 @@ module.exports = (() => {
          term.userType = type
          return term
       },
+
+      rightAssociative : rightAssociative,
+
+      leftAssociative : leftAssociative,
+
+      infixTypeOps : new Map([
+         ['Arrow', new OpInfo('->', rightAssociative, 50)]
+      ]),
+
 
       // Values
      

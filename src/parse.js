@@ -86,11 +86,18 @@ const typeExpression = P.succeed().chain(() => {
 })
 
 // Register type operators with precedence parser
-TypePrecedence.ledop('->', PrecedenceParser.rAssoc, 50, function(info, lhs) {
-   return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
-      return new AST.TypeConstructor('Arrow', [lhs, rhs])
+
+function infixTypeOp([name, opInfo]) {
+   TypePrecedence.ledop(opInfo.symbol, opInfo.associativity, opInfo.precedence, function(info, lhs) {
+      return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
+         return new AST.TypeConstructor(name, [lhs, rhs])
+      })
    })
-})
+}
+
+for (let opEntry of AST.infixTypeOps.entries()) {
+   infixTypeOp(opEntry)
+}
 
 //------------------------------------------------------------------------
 // Values
