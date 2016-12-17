@@ -95,7 +95,7 @@ function infixTypeOp([name, opInfo]) {
    })
 }
 
-for (let opEntry of AST.infixTypeOps.entries()) {
+for (const opEntry of AST.infixTypeOps.entries()) {
    infixTypeOp(opEntry)
 }
 
