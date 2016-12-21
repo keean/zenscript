@@ -83,16 +83,16 @@ AST.TypeConstructor.prototype.show = function(cxt) {
             (leftParenthesis ? ') ' : ' ') + op.symbol + (rightParenthesis ? ' (' : ' ') +
             rhs.show(cxt) + (rightParenthesis ? ')' : '')
       }
-      /*if (str === 'Product') {
-         str = '('
+      if (str === 'Product') {
+         str = '<'
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)
             if (i + 1 < this.params.length) {
                str += ', '
             }
          }
-         return str + ')'
-      }*/
+         return str + '>'
+      }
       if (this.params.length > 0) {
          str += '<'
          for (let i = 0; i < this.params.length; ++i) {

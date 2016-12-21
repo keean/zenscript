@@ -3,6 +3,7 @@ const expect = chai.expect
 
 const P = require('parsimmon')
 const PP = require('../src/parse-precedence.js')
+const AST = require('../src/ast.js')
 
 const hspace = P.regex(/[ ]*/)
 function token(tok) {return tok.skip(hspace)}
@@ -12,31 +13,31 @@ const term = token(P.regex(/[0-9]+/).map((i) => {return parseInt(i)}))
 
 const PPP = new PP.PrecedenceParser(oper, term)
 
-PPP.ledop('-', PP.lAssoc, 50, function(info, lhs) {
+PPP.ledop('-', AST.leftAssociative, 50, function(info, lhs) {
    return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
       return {'sub' : [lhs, rhs]}
    })
 })
 
-PPP.ledop('+', PP.lAssoc, 50, function(info, lhs) {
+PPP.ledop('+', AST.leftAssociative, 50, function(info, lhs) {
    return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
       return {'add' : [lhs, rhs]}
    })
 })
 
-PPP.ledop('*', PP.lAssoc, 70, function(info, lhs) {
+PPP.ledop('*', AST.leftAssociative, 70, function(info, lhs) {
    return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
       return {'mul' : [lhs, rhs]}
    })
 })
 
-PPP.ledop('/', PP.lAssoc, 70, function(info, lhs) {
+PPP.ledop('/', AST.leftAssociative, 70, function(info, lhs) {
    return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
       return {'div' : [lhs, rhs]}
    })
 })
 
-PPP.ledop('^', PP.lAssoc, 90, function(info, lhs) {
+PPP.ledop('^', AST.rightAssociative, 90, function(info, lhs) {
    return this.parseExprWithMinimumPrecedence(info.minimumPrecedence()).map((rhs) => {
       return {'pow' : [lhs, rhs]}
    })

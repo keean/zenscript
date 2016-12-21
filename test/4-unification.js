@@ -20,7 +20,7 @@ describe('Unification', () => {
       const t = new AST.TypeVariable()
       const z = mgu(t, u)
       const show = new Show()
-      expect(show.vars(z)).to.equal('A = Sum<Unit, Product<Int, B>> as B\n')
+      expect(show.vars(z)).to.equal('A = Sum<Unit, <Int, B>> as B\n')
    })
 })
 

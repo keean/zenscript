@@ -55,15 +55,18 @@ const typeVariable = token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
    return t
 })
 
+const typeList = token(P.string('<')).then(P.sepBy(P.lazy(() => {return texp}), comma)).skip(token(P.string('>')))
+
 let texp
 const typeConstructor = P.seqMap(
    token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)),
-   token(P.string('<')).then(P.sepBy(P.lazy(() => {return texp}), comma)).skip(token(P.string('>'))).or(P.succeed([])),
+   typeList.or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
 
 const typeSubExpression = P.seqMap(
-   typeConstructor.or(typeVariable).or(inParenthesis(P.lazy(() => {return texp}))),
+   typeList.map((ts) => {return new AST.TypeConstructor('Product', ts)}).
+      or(typeConstructor).or(typeVariable).or(inParenthesis(P.lazy(() => {return texp}))),
    (token(P.string('as')).then(typeVariable)).or(P.succeed()),
    (texp, mu) => {
       if (mu !== undefined) {
@@ -181,9 +184,9 @@ const tuple = inParenthesis(expression_list).map((exp_list) => {
    return new AST.LiteralTuple(exp_list)
 })
 
-const singleton = inParenthesis(variable.or(int_lit).or(inParenthesis(expression))).map((term) => {
+/*const singleton = inParenthesis(variable.or(int_lit).or(inParenthesis(expression))).map((term) => {
    return new AST.LiteralTuple([term])
-})
+})*/
 
 function application(exp1, exps) {
    return P.seqMap(exp1, exps.many(), (app, app_list) => {
