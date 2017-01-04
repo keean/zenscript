@@ -29,6 +29,12 @@ function token(tok) {
 
 const comma = token(P.string(','))
 
+// Useful definitions
+
+function optional(p) {
+   return p.or(P.succeed())
+}
+
 function fix(f) {
    let lazy
    lazy = f(P.lazy(() => {return lazy}))
@@ -46,20 +52,20 @@ function inParenthesis(exp) {
 
 const var_map = new Map()
 
-const typeVariable = token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
+const typeVariable = (token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
    let t = var_map.get(n)
    if (t === undefined) {
       t = new AST.TypeVariable(n)
       var_map.set(n, t)
    }   
    return t
-})
+})).desc('type-variable')
 
 const typeList = token(P.string('<')).then(P.sepBy(P.lazy(() => {return texp}), comma)).skip(token(P.string('>')))
 
 let texp
 const typeConstructor = P.seqMap(
-   token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)),
+   token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)).desc('type-constructor'),
    typeList.or(P.succeed([])),
    (n, ps) => {return new AST.TypeConstructor(n, ps)}
 )
@@ -67,7 +73,7 @@ const typeConstructor = P.seqMap(
 const typeSubExpression = P.seqMap(
    typeList.map((ts) => {return new AST.TypeConstructor('Product', ts)}).
       or(typeConstructor).or(typeVariable).or(inParenthesis(P.lazy(() => {return texp}))),
-   (token(P.string('as')).then(typeVariable)).or(P.succeed()),
+   optional(token(P.string('as')).then(typeVariable)),
    (texp, mu) => {
       if (mu !== undefined) {
          if (!unify.types(texp, mu)) {
@@ -142,7 +148,7 @@ const block = P.lazy(() => {return block_lazy})
 const thin_arrow = P.string('->').skip(space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
-const typeAnnotation = P.string(':').skip(space)
+const typeAnnotationToken = token(P.string(':'))
 const identifier = (P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)).desc('identifier')
 
 // ID
@@ -153,9 +159,11 @@ const variable = identifier.map((id) => {
 // arg_list = identifier, {comma, identifier}
 const arg_list = P.sepBy(identifier, comma)
 
-// typedIdentifier = identifier, [typeAnnotation, typeExpression]
-const typedVariable = P.seqMap(variable,
-   (typeAnnotation.then(typeExpression)).or(P.succeed()), (v, t) => {
+// optTypeAnnotation = {':', typeExpression}
+const optTypeAnnotation = optional(typeAnnotationToken.then(typeExpression))
+
+// typedIdentifier = identifier, [optTypeAnnotation, typeExpression]
+const typedVariable = P.seqMap(variable, optTypeAnnotation, (v, t) => {
       if (t !== undefined) {
          v.userType = t
       }
@@ -204,7 +212,7 @@ expression_lazy = application(sub_expression, sub_expression)
 //------------------------------------------------------------------------
 // Statements
 
-// Assignments
+// assignment = 'let', typedVariable, '=', expression
 const assignKeyword = P.string('let').then(exp_space)
 const assignment = P.seqMap(
    assignKeyword.then(typedVariable).skip(assign),
@@ -214,23 +222,28 @@ const assignment = P.seqMap(
    }
 )
 
-// Return
+// return
 const returnKeyword = P.string('return')
 const rtn = returnKeyword.then(space).then(expression).map((exp) => {
    return new AST.Return(exp)
 })
 
+// defineFunction = identifier, '(', arg_list, ')', '=>', (expression | NL, block)
 const defineFunction = P.seqMap(
    identifier,
-   inParenthesis(typedArgList).skip(fat_arrow),
+   inParenthesis(typedArgList),
+   optTypeAnnotation.skip(fat_arrow),
    (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
-   (name, args, body) => {
-      return new AST.Declaration(new AST.Variable(name), new AST.Fn(name, args, body))
+   (name, args, optReturnType, body) => {
+      const v = new AST.Variable(name)
+      if (optReturnType !== undefined) {
+         v.userType = optReturnType
+      }
+      return new AST.Declaration(v, new AST.Fn(name, args, body))
    }
 )
 
-// expression_list = expression, {',', expression}
-
+// statement = return | defineFunction | assignment | expression
 const statement = rtn.or(defineFunction).or(assignment).or(expression).skip(space)
 
 //------------------------------------------------------------------------
@@ -252,7 +265,7 @@ block_lazy = P.succeed({}).chain(() => {
 //------------------------------------------------------------------------
 // Program 
 
-// top_level = {NL}, {INDENT==0, statement, {NL}}
+// top_level = {NL}, {INDENT==0, statement, NL, {NL}}
 const topLevel = newline.many().then(
       (Indent.absolute(0).map((i) => Indent.set(i)).then(statement).skip(newline.atLeast(1))).many()
    ).map((blk) => {return new AST.Block(blk)})
