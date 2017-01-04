@@ -105,28 +105,32 @@ for (const opEntry of AST.infixTypeOps.entries()) {
 //------------------------------------------------------------------------
 // Values
 
+// INT
+const literal_integer = (P.regexp(/[0-9]+/).map((i) => {
+   return new AST.LiteralInt(parseInt(i))
+})).desc('integer')
+
 // FLOAT
-const literal_float = P.regexp(/[0-9]+\.[0-9]+/).map((n) => {
+const literal_float = (P.regexp(/[0-9]+\.[0-9]+/).map((n) => {
    return new AST.Literal_Float(parseFloat(n))
-})
+})).desc('float')
 
 // STRING : Simple for now, fix later
-const literal_string = P.regexp(/"[^"]"/).map((s) => {
+const literal_string = (P.regexp(/"[^"]"/).map((s) => {
    return new AST.Literal_String(s)
-})
+})).desc('string')
+
+const literal = literal_string.or(literal_float).or(literal_integer)
 
 // definitions for recursive parsers
 let expression_list_lazy
 const expression_list = P.lazy(() => {return expression_list_lazy})
 
 let expression_lazy
-const expression = P.lazy(() => {return expression_lazy})
+const expression = (P.lazy(() => {return expression_lazy}))
 
 let block_lazy
 const block = P.lazy(() => {return block_lazy})
-
-let sub_expression_lazy
-const sub_expression = P.lazy(() => {return sub_expression_lazy})
 
 //------------------------------------------------------------------------
 // Types
@@ -139,16 +143,11 @@ const thin_arrow = P.string('->').skip(space)
 const fat_arrow = P.string('=>').skip(space)
 const assign = P.string('=').skip(space)
 const typeAnnotation = P.string(':').skip(space)
-const identifier = P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)
+const identifier = (P.regexp(/[a-z][a-zA-Z_0-9]*/).skip(exp_space)).desc('identifier')
 
 // ID
 const variable = identifier.map((id) => {
    return new AST.Variable(id)
-})
-
-// INT
-const int_lit = P.regexp(/[0-9]+/).map((i) => {
-   return new AST.LiteralInt(parseInt(i))
 })
 
 // arg_list = identifier, {comma, identifier}
@@ -184,10 +183,6 @@ const tuple = inParenthesis(expression_list).map((exp_list) => {
    return new AST.LiteralTuple(exp_list)
 })
 
-/*const singleton = inParenthesis(variable.or(int_lit).or(inParenthesis(expression))).map((term) => {
-   return new AST.LiteralTuple([term])
-})*/
-
 function application(exp1, exps) {
    return P.seqMap(exp1, exps.many(), (app, app_list) => {
       if (app_list.length > 0) {
@@ -202,7 +197,7 @@ function application(exp1, exps) {
    })
 }
 
-sub_expression_lazy = literal_function.or(variable).or(int_lit).or(tuple).skip(exp_space)
+const sub_expression = literal_function.or(variable).or(literal).or(tuple).skip(exp_space)
 
 expression_lazy = application(sub_expression, sub_expression)
 
@@ -244,8 +239,8 @@ const statement = rtn.or(defineFunction).or(assignment).or(expression).skip(spac
 block_lazy = P.succeed({}).chain(() => {
    const indent = Indent.get()
    return P.seqMap(
-      newline.many().then(Indent.relative(Indent.gt).map((i) => Indent.set(i))).then(statement),
-      (newline.many().then(Indent.relative(Indent.eq).map((i) => Indent.set(i))).then(statement)).many(),
+      newline.atLeast(1).then(Indent.relative(Indent.gt).map((i) => Indent.set(i))).then(statement),
+      (newline.atLeast(1).then(Indent.relative(Indent.eq).map((i) => Indent.set(i))).then(statement)).many(),
       (first, blk) => {
           blk.unshift(first)
           Indent.set(indent)
@@ -258,8 +253,9 @@ block_lazy = P.succeed({}).chain(() => {
 // Program 
 
 // top_level = {NL}, {INDENT==0, statement, {NL}}
-const topLevel = newline.many().then((Indent.absolute(0).map((i) => Indent.set(i)).
-   then(statement).skip(newline.many())).many()).map((blk) => {return new AST.Block(blk)})
+const topLevel = newline.many().then(
+      (Indent.absolute(0).map((i) => Indent.set(i)).then(statement).skip(newline.atLeast(1))).many()
+   ).map((blk) => {return new AST.Block(blk)})
 
 return {
    program(s) {
