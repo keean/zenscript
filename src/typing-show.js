@@ -65,7 +65,7 @@ AST.TypeConstructor.prototype.show = function(cxt) {
    if (m === undefined || !cxt.visited_set.has(this)) {
       cxt.visited_set.add(this)
       let str = this.atom
-      const op = AST.infixTypeOps.get(this.atom)
+      const op = AST.infixTypeOps.get(str)
       if (op) {
          const lhs = this.params[0].find()
          const rhs = this.params[1].find()
@@ -82,8 +82,7 @@ AST.TypeConstructor.prototype.show = function(cxt) {
          return (leftParenthesis ? '(' : '') + lhs.show(cxt) +
             (leftParenthesis ? ') ' : ' ') + op.symbol + (rightParenthesis ? ' (' : ' ') +
             rhs.show(cxt) + (rightParenthesis ? ')' : '')
-      }
-      if (str === 'Product') {
+      } else if (str === 'Product') {
          str = '<'
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)
@@ -91,9 +90,8 @@ AST.TypeConstructor.prototype.show = function(cxt) {
                str += ', '
             }
          }
-         return str + '>'
-      }
-      if (this.params.length > 0) {
+         str += '>'
+      } else if (this.params.length > 0) {
          str += '<'
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)
