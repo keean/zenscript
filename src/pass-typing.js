@@ -9,7 +9,7 @@ const Show = require('../src/typing-show.js')
 const explain = require('../src/typing-explain.js')
 
 const IntegerType = AST.deepFreeze(new AST.TypeConstructor('Int', []))
-const UnitType = AST.deepFreeze(new AST.TypeConstructor('Unit', []))
+const UnitType = AST.deepFreeze(new AST.TypeConstructor('Product', []))
 
 AST.LiteralInt.prototype.infer = function() {
    this.typing = new AST.Typing(IntegerType)
@@ -142,6 +142,11 @@ AST.Block.prototype.infer = function() {
          defined.set(k, v)
       }
       type = statement_typing.type
+      /*if (!unify.types(type, inst(UnitType))) {
+         console.log(explain(this.statements[i]))
+         const show = new Show()
+         throw 'unification failed: ' + show.type(type) + ' :u: ' + show.type(UnitType)
+      }*/
    }
    this.typing = new AST.Typing(type, context, defined)
    return AST.deepFreeze(this.typing)

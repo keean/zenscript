@@ -50,6 +50,16 @@ function inParenthesis(exp) {
 //------------------------------------------------------------------------
 // Types
 
+P.prototype.ebnf = function(f) {
+   return P((input, i) => {
+      const reply = this._(input, i)
+      if (!reply.status) {
+         reply.expected = f(reply.expected)
+      }
+      return reply
+   })
+}
+
 const var_map = new Map()
 
 const typeVariable = (token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
@@ -61,9 +71,10 @@ const typeVariable = (token(P.regexp(/[A-Z]+[A-Z0-9]*/)).map((n) => {
    return t
 })).desc('type-variable')
 
-const typeList = token(P.string('<')).then(P.sepBy(P.lazy(() => {return texp}), comma)).skip(token(P.string('>')))
-
 let texp
+const tl2 = P.sepBy(P.lazy(() => {return texp}), comma).desc('type-list')
+const typeList = token(P.string('[')).then(tl2).skip(token(P.string(']')))
+
 const typeConstructor = P.seqMap(
    token(P.regexp(/^(?=.*[a-z])[A-Z][a-zA-Z0-9]+/)).desc('type-constructor'),
    typeList.or(P.succeed([])),
@@ -177,7 +188,7 @@ const typedArgList = P.sepBy(typedVariable, comma)
 const literal_function = P.seqMap(
    identifier.or(P.succeed('')),
    inParenthesis(typedArgList).skip(fat_arrow),
-   (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
+   block.or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, body) => {
       return new AST.Fn(name, args, body)
    }
@@ -205,9 +216,7 @@ function application(exp1, exps) {
    })
 }
 
-const sub_expression = literal_function.or(variable).or(literal).or(tuple).skip(exp_space)
-
-expression_lazy = application(sub_expression, sub_expression)
+expression_lazy = literal.or(application(literal_function.or(variable).or(tuple), tuple)) // .skip(exp_space)
 
 //------------------------------------------------------------------------
 // Statements
@@ -228,12 +237,12 @@ const rtn = returnKeyword.then(space).then(expression).map((exp) => {
    return new AST.Return(exp)
 })
 
-// defineFunction = identifier, '(', arg_list, ')', '=>', (expression | NL, block)
+// defineFunction = identifier, '(', arg_list, ')', optTypeAnnotation, '=>', (expression | NL, block)
 const defineFunction = P.seqMap(
    identifier,
    inParenthesis(typedArgList),
    optTypeAnnotation.skip(fat_arrow),
-   (newline.then(block)).or(expression.map((e) => {return new AST.Return(e)})),
+   block.or(expression.map((e) => {return new AST.Return(e)})),
    (name, args, optReturnType, body) => {
       const v = new AST.Variable(name)
       if (optReturnType !== undefined) {
@@ -244,7 +253,7 @@ const defineFunction = P.seqMap(
 )
 
 // statement = return | defineFunction | assignment | expression
-const statement = rtn.or(defineFunction).or(assignment).or(expression).skip(space)
+const statement = rtn.or(defineFunction).or(assignment).or(expression) // .skip(exp_space)
 
 //------------------------------------------------------------------------
 // Blocks
@@ -266,9 +275,15 @@ block_lazy = P.succeed({}).chain(() => {
 // Program 
 
 // top_level = {NL}, {INDENT==0, statement, NL, {NL}}
-const topLevel = newline.many().then(
-      (Indent.absolute(0).map((i) => Indent.set(i)).then(statement).skip(newline.atLeast(1))).many()
-   ).map((blk) => {return new AST.Block(blk)})
+const topLevel = P.seqMap(
+   optional(newline.many().then(Indent.absolute(0).map((i) => Indent.set(i))).then(statement)),
+   (newline.atLeast(1).then(Indent.absolute(0).map((i) => Indent.set(i))).then(statement)).many(),
+   (fst, blk) => {
+      if (fst) {
+         blk.unshift(fst);
+      }
+      return new AST.Block(blk)
+   }).skip(P.optWhitespace)
 
 return {
    program(s) {

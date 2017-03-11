@@ -44,13 +44,13 @@ AST.Fn.prototype.generate = function(cxt) {
       this.args.map((x) => x.name).join(cxt.minimise ? ',' : ', ') +
       (cxt.minimise ? '){' : ') {\n') + body + spaces(cxt.indent) + '}' +
       ((this.typing && cxt.debug) ? ('/*FUN: ' + show.typing(this.typing) +
-      '*/ ') : '') + (cxt.minimise ? '' : '\n')
+      '*/ ') : '') 
 }
 
 AST.Declaration.prototype.generate = function(cxt) {
    return (cxt.minimise ? '' : spaces(cxt.indent)) + 'var ' + this.variable.generate(cxt) +
       (cxt.minimise ? '=' : ' = ') + this.expression.generate(cxt) +
-      (cxt.minimise ? ';' : '; ') + ((this.typing && cxt.debug) ? ('/*DCL: ' +
+      ';' + ((this.typing && cxt.debug) ? ('/*DCL: ' +
       show.typing(this.typing) + '*/ ') : '') + (cxt.minimise ? '' : '\n')
 }
 

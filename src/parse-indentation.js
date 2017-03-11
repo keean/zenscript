@@ -21,7 +21,7 @@ IndentationParser.prototype.set = function(i) {
 IndentationParser.prototype.relative = function(relation) {
    return P((stream, i) => {
       let j = 0
-      while (stream.charAt(i + j) == ' ') {
+      while (stream.charAt(i + j) === ' ') {
          j = j + 1
       }
       if (relation.op(j, this.indent)) {
@@ -35,10 +35,10 @@ IndentationParser.prototype.relative = function(relation) {
 IndentationParser.prototype.absolute = function(target) {
    return P((stream, i) => {
       let j = 0
-      while (stream.charAt(i + j) == ' ') {
+      while (stream.charAt(i + j) === ' ') {
          j = j + 1
       }
-      if (j == target) {
+      if (j === target) {
          return P.makeSuccess(i + j, j)
       } else {
          return P.makeFailure(i, 'indentation error: ' + j + ' does not equal ' + target)
@@ -46,7 +46,7 @@ IndentationParser.prototype.absolute = function(target) {
    })
 }
 
-IndentationParser.prototype.eq  = {op: (x, y) => {return x == y}, err: ' does not equal '}
+IndentationParser.prototype.eq  = {op: (x, y) => {return x === y}, err: ' does not equal '}
 IndentationParser.prototype.ge  = {op: (x, y) => {return x >= y}, err: ' is not equal or greater than '}
 IndentationParser.prototype.gt  = {op: (x, y) => {return x > y}, err: ' is not greater than '}
 IndentationParser.prototype.any = {op: (x, y) => {return true}, err: ' cannot fail '}

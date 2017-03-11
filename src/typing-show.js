@@ -83,23 +83,23 @@ AST.TypeConstructor.prototype.show = function(cxt) {
             (leftParenthesis ? ') ' : ' ') + op.symbol + (rightParenthesis ? ' (' : ' ') +
             rhs.show(cxt) + (rightParenthesis ? ')' : '')
       } else if (str === 'Product') {
-         str = '<'
+         str = '['
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)
             if (i + 1 < this.params.length) {
                str += ', '
             }
          }
-         str += '>'
+         str += ']'
       } else if (this.params.length > 0) {
-         str += '<'
+         str += '['
          for (let i = 0; i < this.params.length; ++i) {
             str += this.params[i].find().show(cxt)
             if (i + 1 < this.params.length) {
                str += ', '
             }
          }
-         str += '>'
+         str += ']'
       }
       if (m !== undefined) {
          str += ' as ' + id_to_name(m)
@@ -150,11 +150,11 @@ AST.Typing.prototype.show = function(cxt) {
 
    let str = ''
    if (cxt_str.length > 0) {
-      str += '{' + cxt_str + '} '
+      str += '{' + cxt_str + '} => '
    }
    str += this.type.find().show(cxt)
    if (def_str.length > 0) {
-      str += ' [' + def_str + ']'
+      str += ' => {' + def_str + '}'
    }
    
    return str
